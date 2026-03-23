@@ -25,7 +25,7 @@ Together all the business rules (such as the maintaining the invariants or how v
 - The domain model should be independent of any particular use case (i.e. the implementation is common to all possible usages)
 - The domain model should be independent of any particular usage in any software product (i.e. the implementation is common to all possible software products), so for example the same domain model could be used in a web application, a mobile application, or a command-line application.
 
-> ⚠ The original description and diagram in Martin (2018 Ch 22) used the term Entity to describe any code that encapsulated business rules. Domain Driven Design defines an Entity as being an object that is defined by its identity (Evans 2003, p. 91) and also introduces Value Objects and Domain Services. We have expanded our definition of the Domain Model to include Entities (in the DDD sense), Value Objects and Domain Services. What Martin calls Entities we are calling Domain Model.
+> The original description and diagram in Martin (2018 Ch 22) used the term Entity to describe any code that encapsulated business rules. Domain Driven Design defines an Entity as being an object that is defined by its identity (Evans 2003, p. 91) and also introduces Value Objects and Domain Services. We have expanded our definition of the Domain Model to include Entities (in the DDD sense), Value Objects and Domain Services. What Martin calls Entities we are calling Domain Model.
 
 ## Use Cases
 A **Use Case** is a widely overloaded term, but has a specific meaning when discussing clean architecture.
@@ -57,7 +57,7 @@ As with Ports and Adapters, what Clean ArchitectureMartin (2018 Ch 22) calls **I
 
 ## Example implementation
 
-> ⚠ See the complete *ShippingCostCleanArchitecture* example code from the Student GitHub repository.
+> See the complete *ShippingCostCleanArchitecture* example code from the Student GitHub repository.
 
 
 Converting our example of calculating a shipping charge to a clean architecture style, the `applicationcode` package splits into two packages: `applicationcode.domainmodel` and `applicationcode.usecase`.
@@ -310,7 +310,7 @@ public interface Provided {
 }
 ```
 
-> ⚠ You may see the terms "input model" and "output model" used instead of request and response objects. The word "model" conflicts with the "domain model" (meaning the entities, value objects and services modelling the business domain) and so we will use request and response to mean the input and output of a Use Case.
+> You may see the terms "input model" and "output model" used instead of request and response objects. The word "model" conflicts with the "domain model" (meaning the entities, value objects and services modelling the business domain) and so we will use request and response to mean the input and output of a Use Case.
 
 ### Validation
 
@@ -334,9 +334,9 @@ public Request(String countryCode, double weight) {
     this.weight = weight;
 }
 ```
-> ☑ Validation is another reason that it is not recommended to share request classes across different Use Case implementations, in addition to creating a coupling between Use Cases, each Use Case will have its own specific validation requirements.
+> Validation is another reason that it is not recommended to share request classes across different Use Case implementations, in addition to creating a coupling between Use Cases, each Use Case will have its own specific validation requirements.
 
-> ⚠ Validation of fields in classes is a common requirement, and Java libraries such as Jakarta Bean Validation can be used to declare constraints on fields using annotations (for example @NotNull ). Search for Jakarta Bean Validation for more information.
+> Validation of fields in classes is a common requirement, and Java libraries such as Jakarta Bean Validation can be used to declare constraints on fields using annotations (for example @NotNull ). Search for Jakarta Bean Validation for more information.
 
 The validation code inside the Use Case implementation assumes the input is OK and just validates that the non-null and non-empty country code has an associated  region, something that requires access to the domain model or the `Required` interface.
 
@@ -348,13 +348,13 @@ The validation code inside the Use Case implementation assumes the input is OK a
         }
 ```
 
-> ☑ A Use Case implementation can be reused by many different driving adapters so it is important that all the input validation required is implemented by the Request object and any business rule validation is implemented by the domain model, and these validations do not leak into the adapters.
+> A Use Case implementation can be reused by many different driving adapters so it is important that all the input validation required is implemented by the Request object and any business rule validation is implemented by the domain model, and these validations do not leak into the adapters.
 
 
 ### Response Objects
 
 Like request objects, response objects are immutable and contain only data specific to the Use Case. Like request objects they do not need to implement the `equals` and `hashCode` methods because they are not used in collections or compared for equality, although implementing `toString` can be useful for debugging.
-> ☑ It is not recommended to share responses classes across different Use Case implementations. Again this would create coupling between Use Cases but response classes will would potentially end up with optional fields which are set by some use cases and not by others, which leaks implementation details from one use case to another. The fact that a response class is specific to a use case means that it does not need data validation because we guarantee the use case will construct a valid response object.
+> It is not recommended to share responses classes across different Use Case implementations. Again this would create coupling between Use Cases but response classes will would potentially end up with optional fields which are set by some use cases and not by others, which leaks implementation details from one use case to another. The fact that a response class is specific to a use case means that it does not need data validation because we guarantee the use case will construct a valid response object.
 
 ## Data Transfer Objects (DTOs) and Java Records
 
@@ -457,7 +457,7 @@ A Web adapter (as a driving adapter) it therefore a combination of standard web 
 | Mapping Use Case response object to HTTP response                    | Controller                  |
 | Returning HTTP response to client                                    | Web Framework               |
 
-> ⚠ Authentication and authorisation are often implemented by the web framework, but elements of authorisation may need to be implemented in the use case as a business rule validation. For example a user may only be authorised to calculate shipping costs for products below a certain weight, or only authorised to calculate shipping costs for certain regions.
+> Authentication and authorisation are often implemented by the web framework, but elements of authorisation may need to be implemented in the use case as a business rule validation. For example a user may only be authorised to calculate shipping costs for products below a certain weight, or only authorised to calculate shipping costs for certain regions.
 >
 > It is probably helpful to think of *authorisation* as being the ability to request the use case, but rules such as weight limits or region limits are *business rules* that are validated by the use case implementation.
 

@@ -118,7 +118,7 @@ myClass.myOperation("ABC123");
 // myOperation() called with parameter ABC123
 ```
 
-> ☑ The Observer/Observable pattern is so useful that there is a general purpose implementation of the pattern in the java.util package. However, it has some drawbacks, including the fact that your class must inherit from the abstract Observable class. Our guidance would be not to use the general purpose implementation and to write specific implementations to suit your particular problem.
+> The Observer/Observable pattern is so useful that there is a general purpose implementation of the pattern in the java.util package. However, it has some drawbacks, including the fact that your class must inherit from the abstract Observable class. Our guidance would be not to use the general purpose implementation and to write specific implementations to suit your particular problem.
 
 For a (slightly) more realistic example, let us return to our Pizza Restaurant. We previously looked at a way of describing a pizza and calculating its price. We now need to save an order containing multiple pizzas together with other details such as the order number.
 
@@ -215,7 +215,7 @@ Our requirements are that when a customer places an order, we want to save it to
 
 The KitchenPrinter class converts an Order object into a printed representation.
 
-> ⚠ In a real system this code is having to deal with all the complexities of an actual mechanical printer. Search "Star Micronics Kitchen Printer" to see specifications for a typical printer. Other printer types are available.
+> In a real system this code is having to deal with all the complexities of an actual mechanical printer. Search "Star Micronics Kitchen Printer" to see specifications for a typical printer. Other printer types are available.
 
 ```Java
 class KitchenPrinter implements OrderObserver {
@@ -270,7 +270,7 @@ Adding Observers to a class is a good way of making it closed for modification a
 
 The Observer pattern is common in GUI frameworks. The Observable object might be something like a button. When a user clicks the button it coverts the mouse actions into events such as OnButtonDown and OnButtonUp. The button implements the Observer pattern. Observers (which might be called **Event Handlers**, **Event Listeners** or **Callbacks**) register themselves with the Button instance, and are notified of all the button events. This way the GUI framework can exist without any knowledge of how your program will react to button events.
 
-> ⚠ The C# language for example has the Observer pattern built into the language using the `event` keyword, and .NET GUI frameworks use events extensively.
+> The C# language for example has the Observer pattern built into the language using the `event` keyword, and .NET GUI frameworks use events extensively.
 
 ## A general Observer Pattern
 
@@ -452,7 +452,7 @@ classDiagram
     Observable ..> Observer : << use >>
 
 ```
-> ☑ Using the Push style you can control what is exposed to the Observer by designing the payload, otherwise you might need to make class internals public. Also, there is no circular reference set up between the Observer and the Observable, which requires you to remember to detach Observes once you have finished with them.
+> Using the Push style you can control what is exposed to the Observer by designing the payload, otherwise you might need to make class internals public. Also, there is no circular reference set up between the Observer and the Observable, which requires you to remember to detach Observes once you have finished with them.
 
 ## Publish and subscribe
 The Observer pattern is an example of a **Publish-Subscribe** (often abbreviated to **PubSub**) architecture, which is a common architecture in multiple areas of computing.

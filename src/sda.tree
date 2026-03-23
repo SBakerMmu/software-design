@@ -6,7 +6,7 @@
                  name="Software Design and Architecture"
                  start-page="Home.md">
 
-    <toc-element topic="Home.md" toc-title="Software Design and Architecture"/>
+    <toc-element topic="Home.md"/>
     <toc-element topic="JavaRecap.md" toc-title="Java Recap"/>
     <toc-element topic="SingleClassDesign01.md" toc-title="Single class design (1): Access control"/>
     <toc-element topic="SingleClassDesign02.md" toc-title="Single class design (2): Contracts"/>
@@ -22,10 +22,11 @@
     <toc-element topic="MultiClassDesign02.md" toc-title="Designing with multiple classes (2): Patterns"/>
     <toc-element topic="States.md" toc-title="State Machines and the State Pattern"/>
     <toc-element topic="Dependencies.md"/>
-    <toc-element topic="DependencyInjection.md" toc-title="Dependency Injection"/>
+    <toc-element topic="DependencyInjection.md"/>
     <toc-element topic="PortsAndAdapters.md" toc-title="Ports and Adapters or Hexagonal Architecture"/>
-    <toc-element topic="CleanArchitecture.md" toc-title="Clean Architecture"/>
+    <toc-element topic="CleanArchitecture.md"/>
     <toc-element topic="Documentation.md" toc-title="Documenting Software Design"/>
     <toc-element topic="OODALoops.md" toc-title="Design thinking and problem-solving with OODA loops"/>
+    <toc-element topic="References.md"/>
 
 </instance-profile>

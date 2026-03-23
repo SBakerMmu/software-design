@@ -91,7 +91,7 @@ We can see from this analysis only the base is mandatory (in theory a customer c
 
 We start with an interface that describes the behavior we require and a helper method to display the result.
 
-> ⚠ Following the guidance for class design, examples should really use Value Objects for descriptions and prices, but have used primitives for now to simplify the example
+> Following the guidance for class design, examples should really use Value Objects for descriptions and prices, but have used primitives for now to simplify the example
 
 ``` Java
 interface PizzaComponent {
@@ -458,7 +458,7 @@ class ConcreteHandler implements Handler {
 }
 ```
 
-> ⚠ You may be thinking that you could use a chain of handlers to ensure preconditions before a call and postConditions and class invariants after the call - general advice is that that is not what the pattern is for - Ensuring pre-conditions, post-conditions and the class invariant is an integral part of the class design. Decorators and Handlers are for managing additional responsibilities for a class, whereas pre-conditions, post-conditions and the class invariant are a core responsibility of the class which should not be delegated to other components.
+> You may be thinking that you could use a chain of handlers to ensure preconditions before a call and postConditions and class invariants after the call - general advice is that that is not what the pattern is for - Ensuring pre-conditions, post-conditions and the class invariant is an integral part of the class design. Decorators and Handlers are for managing additional responsibilities for a class, whereas pre-conditions, post-conditions and the class invariant are a core responsibility of the class which should not be delegated to other components.
 
 
 ## Chains and Pipelines

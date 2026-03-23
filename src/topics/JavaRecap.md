@@ -48,7 +48,7 @@ var f = { 6 }; // Illegal: array initializer
 var g = (g = 7); // Illegal: self reference in initializer
 ```
 
-> ☑ Generally do not use vars in production code, fully specify the type so that anyone reading your code doesn't have to guess.
+> Generally do not use vars in production code, fully specify the type so that anyone reading your code doesn't have to guess.
 
 Java also has the concept of a `final` variable. Once assigned a `final` always contains the same value and the compiler will prevent a re-assignment.
 
@@ -64,7 +64,7 @@ static final double VALUE_OF_PI = 3.1415d;
 
 The `static` keyword means that a single copy of the field exists within the entire program and therefore there can only be one value for the field in the entire program. Contrast this to a non-static, per-instance field. Every new instance gets its own copy of the field,
 
-> ☠ Be very wary of `static` fields that are not `final`.
+> Be very wary of `static` fields that are not `final`.
 
 We also specify the **type** on method parameters.
 
@@ -165,11 +165,11 @@ You cannot define new primitives in Java, they are part of the language. From th
 
 - `char`: single 16-bit Unicode character. It has a minimum value of '\u0000' (or 0) and a maximum value of '\uffff' (or 65,535 inclusive). The default value is the null character `\u0000`.
 
-> ⚠ Be wary of under or overflowing the min and max values for primitive types, Java does not protect you against this.
+> Be wary of under or overflowing the min and max values for primitive types, Java does not protect you against this.
 
  Java allows some automatic conversions, for example it is OK to assign an `int` to `long` because long is *wider* than int (a long can safely contain all the int values)
 
-> ⚠ Do not use float or double for precise values such as currency or money - use `java.math.BigDecimal` which is a class, not a primitive.
+> Do not use float or double for precise values such as currency or money - use `java.math.BigDecimal` which is a class, not a primitive.
 
 ## Classes
 
@@ -274,22 +274,22 @@ class MyClass
 
 Using the `final` keyword in design tells the reader (and the compiler) something about your intentions and prevents someone maintaining your code accidentally changing a variable's value you did not intend to be changed.
 
-> ⚠ For simplicity, we will not apply the final qualifier to method parameters in examples just to reduce line length in the code examples
+> For simplicity, we will not apply the final qualifier to method parameters in examples just to reduce line length in the code examples
 
 
 The fields and methods (including any getter and setter methods) declared in the class are the **members** of the class.
 
-> ⚠ Methods can also be called **member functions**.
+> Methods can also be called **member functions**.
 >
-> ⚠ Constructors not members because they are not inherited. Constructors are special in other ways. They are responsible for initializing the state of an instance when it's created. You cannot call a constructor directly (requires the new operator) and you cannot call a constructor again on an already existing object.
+> Constructors not members because they are not inherited. Constructors are special in other ways. They are responsible for initializing the state of an instance when it's created. You cannot call a constructor directly (requires the new operator) and you cannot call a constructor again on an already existing object.
 
 The type of the fields must be specified (you cannot use the `var` keyword) and the field names must be unique.
 
 Both fields and methods can be declared `static` which means that they belong to the class.
 
-> ☠ In the case of static fields this means that that field is shared amongst all instances of the class and is a form of **global state**, generally not a good thing unless you know what you are doing. It is hard to track and debug changes to global state, and unless coded correctly, updating global state is not thread-safe.
+> In the case of static fields this means that that field is shared amongst all instances of the class and is a form of **global state**, generally not a good thing unless you know what you are doing. It is hard to track and debug changes to global state, and unless coded correctly, updating global state is not thread-safe.
 >
-> ⚠ Non-static fields can be called **instance variables** as memory is allocated for the field for each instance. Static fields can be called **class variables** because memory is allocated once when the class is initialized.
+> Non-static fields can be called **instance variables** as memory is allocated for the field for each instance. Static fields can be called **class variables** because memory is allocated once when the class is initialized.
 
 Two or more method declarations can have the same method name, if the list of parameter types is unique.
 
@@ -669,9 +669,9 @@ Whilst it may seem an academic distinction to make, a true query does not have *
 
 In Java is there is no language mechanism to say if an operation is a command or a query. By convention in Java the method `int getX()` method would return the value of the field x as an integer. Anyone calling that method would be very surprised if `int getX()` had changed the object state. You should follow that convention.
 
-> ⚠ Be aware that you could call the same query twice in different parts of the program and there is no guarantee it would get the same value returned, because a command (a state changing operation) could have been requested between the two query operations.
+> Be aware that you could call the same query twice in different parts of the program and there is no guarantee it would get the same value returned, because a command (a state changing operation) could have been requested between the two query operations.
 
-> ☑ Where possible write your code so that operations that return values are **queries** and all **command** (state altering) operations are written as void methods. If you do write a command (state altering method) that returns a value, ensure you document that it is state altering.
+> Where possible write your code so that operations that return values are **queries** and all **command** (state altering) operations are written as void methods. If you do write a command (state altering method) that returns a value, ensure you document that it is state altering.
 
 ## Typed References
 

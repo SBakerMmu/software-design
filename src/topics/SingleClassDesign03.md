@@ -2,7 +2,7 @@
 
 In all the examples we have seen we have used **primitive types** (doubles and integers for example) and Strings to hold values. It is much better to work with dedicated classes that represent the values in your software design. Although it is a bit more work to start with, every time you use an instance of your class rather than a primitive, you will see a benefit.
 
-In an e-commerce system we can represent prices and discounts as `double` primitives. But then we rely on variable, field and parameter naming to distinguish what is the meaning of each value. 
+In an e-commerce system we can represent prices and discounts as `double` primitives. But then we rely on variable, field and parameter naming to distinguish what is the meaning of each value.
 
 In retail a non-discounted price is called a **Full Price**, so we can create named class that communicates the purpose of the value - the class has a name which tells us what kind of price it is.
 
@@ -50,11 +50,11 @@ class FullPrice {
     }
 }
 ```
-Note that the class is **immutable** meaning that the data inside cannot be changed once created, so that they behave like primitive values (which also cannot be changed). To do this we declare all the fields as being `final` so that they can only be initialized in the constructor and never changed. 
+Note that the class is **immutable** meaning that the data inside cannot be changed once created, so that they behave like primitive values (which also cannot be changed). To do this we declare all the fields as being `final` so that they can only be initialized in the constructor and never changed.
 
 Classes that replace the use of primitive and String values are called **Value Objects**. This isn't a term you will find in the Java specification; it just means that we have created a type that is intended to replace the use of a primitive type such as int or double, or a Jave String or date class. By using Value Objects we get the benefit of type safety
 
-We can put all the pre-condition, post-condition and class invariant checking code in one place, guaranteeing that when we create an instance of the FullPrice class, it will be valid. As these objects are immutable, once created, they always remain valid. Clients can then just use instance without having to do further checking, because of the guarantees we have built into the class.  
+We can put all the pre-condition, post-condition and class invariant checking code in one place, guaranteeing that when we create an instance of the FullPrice class, it will be valid. As these objects are immutable, once created, they always remain valid. Clients can then just use instance without having to do further checking, because of the guarantees we have built into the class.
 
 Because they represent values, two instances of a Value Object are equal when the values of their instance variables are equal - in other words they have content equality. Value Object are classes that represent small things such as values or measures and provide a single place to put all their creation and usage logic.
 
@@ -80,7 +80,7 @@ public final class ValueObject {
     //Create a Constant object that represents a common value such as Zero or One, which can be used for initialization
     public final static ValueObject Zero = new ValueObject(0);
     public final static ValueObject One  = new ValueObject(1);
-  
+
     private final int value;
 
     public ValueObject(int value) {
@@ -107,7 +107,7 @@ public final class ValueObject {
     public int hashCode() {
         return Objects.hash(value);
     }
-    
+
     @Override
     public String toString()
     {
@@ -117,13 +117,13 @@ public final class ValueObject {
 ```
 ### The importance of implementing `equals()` correctly.
 
-Recall that Java has primitive and reference types. 
+Recall that Java has primitive and reference types.
 
-`==` checks value equality for primitive types, but only checks the *reference* equality of two objects (i.e. both sides of the operation are the same instance in memory). 
+`==` checks value equality for primitive types, but only checks the *reference* equality of two objects (i.e. both sides of the operation are the same instance in memory).
 
-The default Object.equals() method also only checks the referential equality of two objects (i.e. equivalent to `==`), so we need to override this default implementation to check the contents of our class to achieve content equality. 
+The default Object.equals() method also only checks the referential equality of two objects (i.e. equivalent to `==`), so we need to override this default implementation to check the contents of our class to achieve content equality.
 
-Writing equals() correctly requires some care. You need to determine which fields participate (usually all of them) and then write the equality test correctly. 
+Writing equals() correctly requires some care. You need to determine which fields participate (usually all of them) and then write the equality test correctly.
 
 The signature is `public boolean equals(Object obj)` so you need to deal with `obj` being null and also `obj` being a different class (in both cases return false).
 
@@ -134,36 +134,36 @@ Once we have established that we are dealing with a non-null reference value of 
 - It must be **transitive**: for any non-null reference values x, y, and z, if x.equals(y) returns true and y.equals(z) returns true, then x.equals(z) should return true.
 - It must be **consistent**: for any non-null reference values x and y, multiple invocations of x.equals(y) consistently return true or consistently return false, provided no information used in equals comparisons on the objects is modified.
 
-> ⚠ The `equals` method of the Java String class  is case-sensitive (i.e. the character sequence must be identical),  but you might want to use `equalsIgnoreCase` version to get a case-insensitive test.
+> The `equals` method of the Java String class  is case-sensitive (i.e. the character sequence must be identical),  but you might want to use `equalsIgnoreCase` version to get a case-insensitive test.
 
-> ⚠ Defining what equals() means when comparing two collections involved depends on if the collections are ordered, in which case ordering matters, or unordered, in which case you are only interested if they have the same contents. Java Sets can help you here. 
+> Defining what equals() means when comparing two collections involved depends on if the collections are ordered, in which case ordering matters, or unordered, in which case you are only interested if they have the same contents. Java Sets can help you here.
 
 
-### The importance of implementing `hashCode()` as well as `equals()`. 
+### The importance of implementing `hashCode()` as well as `equals()`.
 
-> ⚠ If you implement `equals()` you must implement `hashCode() and vice-versa`.
+> If you implement `equals()` you must implement `hashCode() and vice-versa`.
 
 Some algorithms and data structures use the hash code value as a representation of a contents of the object - most notably the HashMap, which uses the hash code to decide which bucket should hold a key-value pair.
 
 As with `equals()`, there are a set of rules for implementing the `hashCode()` method.
- 
+
 - It must be **consistent** like `equals`:  `hashCode()` must consistently return the same integer, provided no information used in equals comparisons on the object is modified.
 - If two objects are equal according to the `equals()` method, their `hashCode()` methods must return the same integer value.
 - Hash codes are not necessarily unique, but a good hashCode() method implementation distributes values widely.
 
-> ☑ We strongly advise you use `static int hash(Object... values)` method of `java.util.Objects` is helpful in generating suitable hash values when there are more than one field involved in the `equals`. This is surprisingly hard to do well yourself.
- 
-> ☑ If the Value Object is immutable (which it should be) you could calculate the hash value at construction time, and save the computation every time hashCode() is called.
+> We strongly advise you use `static int hash(Object... values)` method of `java.util.Objects` is helpful in generating suitable hash values when there are more than one field involved in the `equals`. This is surprisingly hard to do well yourself.
+
+> If the Value Object is immutable (which it should be) you could calculate the hash value at construction time, and save the computation every time hashCode() is called.
 
 ## Value Objects - A worked example
 
-Our Product class isn't very useful at present because it has nothing that identifies the product. For the product to be sold in a shop or stocked in a warehouse, are going to need a numeric identity that can be printed on a barcode and scanned in the warehouse or at a Point of Sale (POS) in a shop. 
+Our Product class isn't very useful at present because it has nothing that identifies the product. For the product to be sold in a shop or stocked in a warehouse, are going to need a numeric identity that can be printed on a barcode and scanned in the warehouse or at a Point of Sale (POS) in a shop.
 
 Packaged products usually have the identity barcode on the packaging. Clothing (garments) typically have the identity barcode on a 'swing ticket' so a garment can be hung on a rail or hanger without any packaging.
 
 There is a global standard for product ids called the GTIN or Global Trade Item Number (GS1 2024) so that products can be uniquely identified through the supply chain. The standard also specifies how a GTIN number should be represented as a barcode.
 
-A GTIN-13 code has 13 digits 
+A GTIN-13 code has 13 digits
 
 | Company Prefix | Item Reference | Checksum Digit |
 |----------------|----------------|----------------|
@@ -390,7 +390,7 @@ if(scannedGtin.equals(gtin))
 
 The Java library provides standard exceptions which could be thrown when pre-conditions, post-conditions or invariants are invalid.
 
-The above example uses a set of related custom Exception classes which are part of the representation of a GTIN13 identifier. Providing custom typed exceptions separates out the logic of creating the message, makes exceptions independently testable and provides additional context to anyone catching or reading the exception. 
+The above example uses a set of related custom Exception classes which are part of the representation of a GTIN13 identifier. Providing custom typed exceptions separates out the logic of creating the message, makes exceptions independently testable and provides additional context to anyone catching or reading the exception.
 
 ``` Java
 public abstract class InvalidException extends Exception {
@@ -432,7 +432,7 @@ public class InvalidCheckDigitException extends InvalidException {
         invalidString = s;
     }
 }
-``` 
+```
 
 Parsing an invalid barcode such as "3200000003779" provides a strongly typed exception as well as an informative message.
 
@@ -443,14 +443,14 @@ Parsing an invalid barcode such as "3200000003779" provides a strongly typed exc
 
 Martin and Beck (2019, p78) described the use of primitives and Strings rather than encapsulating them in meaningful classes as **Primitive Obsession** and observed that 'We find many programmers are curiously reluctant to create their own fundamental types'. The cure for Primitive Obsession is to create Value Object style classes that represent concepts in your software product.
 
-If there are primitives in your code base chances are that some code such as checks, arithmetic, number rounding etc. will be repeated within the code base. Identifying these primitives and encapsulating them in meaningful classes means that potentially repeated code is put in one place - the encapsulated class. This is a powerful application of the **Don't repeat yourself (DRY)** principle. 
+If there are primitives in your code base chances are that some code such as checks, arithmetic, number rounding etc. will be repeated within the code base. Identifying these primitives and encapsulating them in meaningful classes means that potentially repeated code is put in one place - the encapsulated class. This is a powerful application of the **Don't repeat yourself (DRY)** principle.
 
-The **DRY** principal states that 'Every piece of knowledge must have a single, unambiguous, authoritative representation within a system.' (Thomas and Hunt, 2020 Ch 8 Topic 9). When knowledge of any kind is duplicated within a software system it increases the likelihood that a change will be made in one place will but not duplicated successfully in all the others, leading to the software to diverge in its handling of that piece of knowledge. 
+The **DRY** principal states that 'Every piece of knowledge must have a single, unambiguous, authoritative representation within a system.' (Thomas and Hunt, 2020 Ch 8 Topic 9). When knowledge of any kind is duplicated within a software system it increases the likelihood that a change will be made in one place will but not duplicated successfully in all the others, leading to the software to diverge in its handling of that piece of knowledge.
 
-> ☑ Write classes conforming to the **Value Object** pattern and use as types in class fields, method parameters and method returns as replacements for primitives wherever possible. There is a small amount of up-front work to create and test the class, but the benefits are gained every time the value object is used in client code.
+> Write classes conforming to the **Value Object** pattern and use as types in class fields, method parameters and method returns as replacements for primitives wherever possible. There is a small amount of up-front work to create and test the class, but the benefits are gained every time the value object is used in client code.
 
-> ☑ When designing classes think about how you are enforcing pre-conditions, post-conditions and class invariants at the very least for the public operations.
-Code that enforces pre-conditions, post-conditions and class invariants will throw exceptions. Consider creating custom exception classes that encapsulate useful information for any client handling the exception. These exception types become part of your public API. 
+> When designing classes think about how you are enforcing pre-conditions, post-conditions and class invariants at the very least for the public operations.
+Code that enforces pre-conditions, post-conditions and class invariants will throw exceptions. Consider creating custom exception classes that encapsulate useful information for any client handling the exception. These exception types become part of your public API.
 
 ## A Note on Checksums in identities
 
@@ -467,14 +467,14 @@ Unlike GTINS, PAN Numbers can have different lengths but consist of a **bank ide
 
 **International Mobile Equipment Identity**  (IEMI) numbers (the unique identifier used with mobile phones) is another example of an identifier whose last digit is a checksum calculated using the [Luhn](https://en.wikipedia.org/wiki/Luhn_algorithm) algorithm.
 
-> ☑ If you ever need to create an identifier that would be scanned or machine read or typed in, then you should probably consider adding a checksum digit to ensure that the user has read or typed the number correctly. As we have seen the use of Value Objects puts all the handling and validation of checksums in one place and makes it simpler for others to use the identifier without having to worry about parsing and calculating the checksum values.
+> If you ever need to create an identifier that would be scanned or machine read or typed in, then you should probably consider adding a checksum digit to ensure that the user has read or typed the number correctly. As we have seen the use of Value Objects puts all the handling and validation of checksums in one place and makes it simpler for others to use the identifier without having to worry about parsing and calculating the checksum values.
 
 ## UUIDs - Universally Unique Identifiers
 
 In computer science, a UUID is a **Universally Unique Identifier**. You may also see the term **GUID** or **Globally Unique Identifier**.
 
-A UUID algorithm generates a 128-bit number, which is usually displayed to a human as a 36 character hex string, such as `4479e710-6ab0-4521-ac7b-ca34752774f2`. In Java the `java.util.UUID` class is a Value Object representing a UUID. The static method `public static UUID randomUUID()` generates a new random UUID.   
+A UUID algorithm generates a 128-bit number, which is usually displayed to a human as a 36 character hex string, such as `4479e710-6ab0-4521-ac7b-ca34752774f2`. In Java the `java.util.UUID` class is a Value Object representing a UUID. The static method `public static UUID randomUUID()` generates a new random UUID.
 
-Unlike GTINs or PANs there is no central authority creating UUIDs - they are essentially random numbers being generated by an algorithm. Technically they are not guaranteed to be unique but the chance of a collision (two UUIDs being identical) is vanishingly small. Consequently, UUIDs are widely used to generate unique identifiers within computer programs without having to use a central source. UUIDs are applied to identify things like requests, responses, messages, log entries, versions and access tokens. There is no check digit in a UUID which makes them a poor choice for manual data entry or scanning. 
+Unlike GTINs or PANs there is no central authority creating UUIDs - they are essentially random numbers being generated by an algorithm. Technically they are not guaranteed to be unique but the chance of a collision (two UUIDs being identical) is vanishingly small. Consequently, UUIDs are widely used to generate unique identifiers within computer programs without having to use a central source. UUIDs are applied to identify things like requests, responses, messages, log entries, versions and access tokens. There is no check digit in a UUID which makes them a poor choice for manual data entry or scanning.
 
 A common use case for a UUID is the primary key for a database record as any machine in a network can generate a unique UUID without the overhead of calling some central service. Whilst using UUIDs for primary keys is fine in student projects, there can be issues using UUIDs as primary keys in real-world database systems owning to their size (128bits) and randomness.

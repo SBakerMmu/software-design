@@ -67,7 +67,7 @@ The pre-condition(s) must be true to perform the operation, so if the pre-condit
 
 Pre-conditions are optional - not every operation requires pre-conditions but most do (pre-condition checks on the arguments being more common than pre-conditions on the object state).
 
-> ⚠ Formally, we can say a pre-condition is a constraint that must be true when the operation is invoked (Rumbaugh *et al.* 2005 p. 531).
+> Formally, we can say a pre-condition is a constraint that must be true when the operation is invoked (Rumbaugh *et al.* 2005 p. 531).
 
 ### Post-conditions
 
@@ -107,7 +107,7 @@ Product {
 }
 
 ```
-> ⚠ Formally, we can say a post-condition is a constraint that must be true at the completion of the operation (Rumbaugh *et al.* 2005 p.528).
+> Formally, we can say a post-condition is a constraint that must be true at the completion of the operation (Rumbaugh *et al.* 2005 p.528).
 
 As well as updating object state, some operations return results in their return values. There may be post-conditions applied to the return value, for example a post condition that constrains the range of return values.
 
@@ -169,7 +169,7 @@ class Product {
 
 }
 ```
-> ⚠ Formally, we can say an invariant is a constraint that must always be true when operations are complete (Rumbaugh *et al.* 2005 p.423).
+> Formally, we can say an invariant is a constraint that must always be true when operations are complete (Rumbaugh *et al.* 2005 p.423).
 
 Establishing all the class invariants is the responsibility of the constructor(s). Maintaining the invariant is the responsibility of the command operations (operations that change state). Invariants can be *temporarily* broken during the execution of an operation but must be restored before the operation completes.
 
@@ -243,4 +243,4 @@ Query operations do not change state, but they still have pre-conditions (things
 
 If this looks like a lot of work, it is! However, this is what it takes to write high-quality code. In practice, it is not always necessary to write full pre-condition, post-condition and class invariant checks, but as a design question you should ask yourself what is the contract supplier and client. As Java doesn't have any support for these checks in the language itself, it is up to you as the developer to ensure you are meeting the contract.
 
-> ⚠ A note about implementing pre-condition, post-condition and invariant checks. Instead of using exceptions, Java has an `assert` statement that evaluates a Boolean expression. Assertions have to be enabled by running the Java program with the `-ea` or `--enableassertions`  flag. The idea of the `assert` is that assertion checking is enabled during program development and testing, and disabled for deployment to improve performance as the asserted expression is not evaluated.
+> A note about implementing pre-condition, post-condition and invariant checks. Instead of using exceptions, Java has an `assert` statement that evaluates a Boolean expression. Assertions have to be enabled by running the Java program with the `-ea` or `--enableassertions`  flag. The idea of the `assert` is that assertion checking is enabled during program development and testing, and disabled for deployment to improve performance as the asserted expression is not evaluated.

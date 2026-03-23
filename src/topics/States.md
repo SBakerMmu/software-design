@@ -22,7 +22,7 @@ The Terms and Conditions section usually has something like, "Please note that y
 
 When an order is received, the warehouse team needs to **pick** the order. **Picking** requires **pickers** to walk around the warehouse locating and collecting the ordered items. Usually, pickers have some form of barcode scanner which scans the EAN13 or other barcode on the product to confirm that the product they have picked is the one on the order. The picked order is then sent to a **packing** station for wrapping, boxing and labelling with the customer delivery address. Packed orders are then collected by a courier or delivery company. At the point the order leaves the warehouse, it is **dispatched**.
 
-> ⚠ If a warehouse sends out orders directly to customers, then it may be called a Distribution Centre or Fulfilment Centre, but we will use the term warehouse for this example.
+> If a warehouse sends out orders directly to customers, then it may be called a Distribution Centre or Fulfilment Centre, but we will use the term warehouse for this example.
 
 A Dispatch confirmation email is sent when the order leaves the warehouse. Emails typically include details of the courier and details of how to return the order.
 
@@ -95,7 +95,7 @@ This is an example set of states and transitions which ignores much of the actua
 
 Returned and Cancelled are the **terminal states**, in both cases there can be no further transitions from either of these states, and all events received in those states are either ignored or treated as an error.
 
-> ⚠ In real world implementations, there is often a requirement to undo legitimate user mistakes, so often **terminal states** do accept an Undo event and a transition out of the state, but this is only to correct user error rather than being part of a business process.
+> In real world implementations, there is often a requirement to undo legitimate user mistakes, so often **terminal states** do accept an Undo event and a transition out of the state, but this is only to correct user error rather than being part of a business process.
 
 ## Coding a Simple State Machine
 
@@ -564,11 +564,11 @@ extendedStateMachine.tick();
 ```
 ESMs use a combination of states, data variables and guard conditions.
 
-> ☑ The State patten is an object-oriented solution to managing the state and behaviour in the presence of events. It puts all the processing logic into a simple class structure, rather than using `if` or `switch` statements spread through the codebase.
+> The State patten is an object-oriented solution to managing the state and behaviour in the presence of events. It puts all the processing logic into a simple class structure, rather than using `if` or `switch` statements spread through the codebase.
 >
-> ☑ Using State Transition Tables and State Machine diagrams are a great way of capturing and understanding requirements that directly translate to the state pattern code.
+> Using State Transition Tables and State Machine diagrams are a great way of capturing and understanding requirements that directly translate to the state pattern code.
 
-> ☑ Some open-source libraries provide a configurable framework for State Machines using code that looks more like entries in a State Transition Table.
+> Some open-source libraries provide a configurable framework for State Machines using code that looks more like entries in a State Transition Table.
 
 ## The general State pattern
 
@@ -655,7 +655,7 @@ We have generally advised against using class inheritance, but here is makes sen
 
 The example uses the Java inner (nested) class feature.
 
-> ⚠ Non-static nested classes have direct access to the members (fields and methods) of the outer class, even if they are private.
+> Non-static nested classes have direct access to the members (fields and methods) of the outer class, even if they are private.
 
 The example defines two interfaces for email and payment services.
 

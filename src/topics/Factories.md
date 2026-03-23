@@ -67,7 +67,7 @@ In both cases the field must be qualified with the `final` keyword to make them 
 
 These are examples of the **Singleton** pattern. Singletons are intended to be single primitive value or single object instance within the whole program. The main issue with Singletons is that their state can be updated by any part of the program and by any thread, unless they are immutable.
 
-> ☠ The use of singletons is to be avoided UNLESS they are constants (immutable values or immutable objects).
+> The use of singletons is to be avoided UNLESS they are constants (immutable values or immutable objects).
 
 Bear in mind that a singleton cannot be garbage collected, because conceptually all static variables belong to a class and not an instance, and that a class has a lifetime from first use to the complete termination of the program.
 
@@ -113,7 +113,7 @@ public final class GTIN13 {
 ```
 The other thing to note that the second of these creation methods can return `null` (something that a constructor cannot do - it either creates an object or throws an exception). We have called the method `tryParse` rather than just `parse` to indicate it could return `null`. Note also that we have two creation methods that have the same parameter lists but different names - something else you cannot do with constructors.
 
-> ☑ Use a static creation method when you want to put complex creation logic in a single place (the Don't Repeat Yourself principle). Although these creation methods can return null, make sure the method name indicates this, as generally we expect creation to either succeed or throw an exception.
+> Use a static creation method when you want to put complex creation logic in a single place (the Don't Repeat Yourself principle). Although these creation methods can return null, make sure the method name indicates this, as generally we expect creation to either succeed or throw an exception.
 
 ## Creating Subclasses of Abstract Products
 
@@ -366,7 +366,7 @@ The selected concrete factory instance is now creating a range of different obje
 
 Most books show the AbstractFactory pattern as being used to create a family of related types, but arguably the more common implementation is that one Factory creates one type, which is just a degenerate case of the family - in effect a family of one.
 
-> ☑ The Abstract Factory pattern encapsulates the responsibility and the process of creating objects, and isolates clients from having to pick which specific concrete implementation classes they create. Instead, clients ask for new object through a Factory and use them through their abstract interfaces.
+> The Abstract Factory pattern encapsulates the responsibility and the process of creating objects, and isolates clients from having to pick which specific concrete implementation classes they create. Instead, clients ask for new object through a Factory and use them through their abstract interfaces.
 
 ## Using Factories for caching
 
@@ -688,7 +688,7 @@ AbstractLoopingClass looper = new ConcereteLoopingClass();
 looper.loop(100);
 ```
 
-> ☠ Please don't take this example too literally (writing a simple `for` loop would be much more obvious to the reader), it's just an illustration to show how you can write one common algorithm with some steps varied via subclassing. Having said that, we have written something similar to the AbstractLoopingClass to create loops with complex error recovery, retries or timeouts.
+> Please don't take this example too literally (writing a simple `for` loop would be much more obvious to the reader), it's just an illustration to show how you can write one common algorithm with some steps varied via subclassing. Having said that, we have written something similar to the AbstractLoopingClass to create loops with complex error recovery, retries or timeouts.
 
 The general form for Template Method.
 

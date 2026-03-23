@@ -15,7 +15,7 @@ class MyClass
     private MyClass myClass2 = new MyClass(); A field of reference type, which is an instance variable, explicitly initialized to an instance;
 }
 ```
-☑ Prefer explicit initialisation, because then your intention is clear - is the absence of initialisation by design or by accident?
+Prefer explicit initialisation, because then your intention is clear - is the absence of initialisation by design or by accident?
 
 Using explicit initialisation in the class declaration makes your intentions clear, as in this example
 
@@ -40,7 +40,7 @@ class MyClass
 
 }
 ```
-☑ Variables should have the tightest possible scope. Do not make what should be a local variable a field (instance variable).
+Variables should have the tightest possible scope. Do not make what should be a local variable a field (instance variable).
 
 ``` Java
 class MyClass
@@ -72,7 +72,7 @@ We write classes so that they supply useful functionality to other classes. Code
 
 The members you expose are the **application programming interface** or **API**  of your class. The use of the word interface is different to the Java `interface` keyword. The term interface in **application programming interface** means all the fields, methods and types that a developer needs to know in order to use your class and the term applies regardless if your class is a standard class, `extends` an abstract superclass or `implements` a Java interface.
 
-> ☑ When writing classes that will be used by others, how the API works is a key part of software design process because it will determine how easily another developer can use your class. Whole books are written about what makes a good API, but you want to your API to cause other developers the least work as possible when using your class. Work here means both typing (the amount of code needed to be written) and cognitive work (how much effort it takes to understand what your class does).
+> When writing classes that will be used by others, how the API works is a key part of software design process because it will determine how easily another developer can use your class. Whole books are written about what makes a good API, but you want to your API to cause other developers the least work as possible when using your class. Work here means both typing (the amount of code needed to be written) and cognitive work (how much effort it takes to understand what your class does).
 
 
 ## Minimising access to your class
@@ -128,7 +128,7 @@ In a student project your Java main file (typically) does not live in a package 
 
 `util` (contains your utility classes)
 
-> ☠ Note that Oracle owns all the packages beginning `java` or `sun` so don't use those names for your packages.
+> Note that Oracle owns all the packages beginning `java` or `sun` so don't use those names for your packages.
 
 In professional Java programming, it is a convention to use a reversed domain name as a package prefix (the assumption being that a domain name is unique in the world), for example if you owned the domain `example.com` then your packages might be
 
@@ -179,9 +179,9 @@ public class Main {
     }
 }
 ```
-> ⚠ IntelliJ will usually provide a prompt to import the package if it sees a non fully qualified type identifier.
+> IntelliJ will usually provide a prompt to import the package if it sees a non fully qualified type identifier.
 
-> ⚠ Behind the scenes, the Java compiler also automatically imports all public classes and interfaces declared in the predefined package `java.lang` because that package provides classes that are fundamental to the design of the Java programming language such as `String` and `Throwable`. See the documentation for the `java.lang` package for more detail.
+> Behind the scenes, the Java compiler also automatically imports all public classes and interfaces declared in the predefined package `java.lang` because that package provides classes that are fundamental to the design of the Java programming language such as `String` and `Throwable`. See the documentation for the `java.lang` package for more detail.
 
 ## Package Private
 
@@ -189,7 +189,7 @@ Assuming we don't want to make some members of MyClass available, we can fix thi
 
 However, when a class, constructor or member does not have an explicit access specification, it is **package-private** - which means that it is accessible to other classes in the same package.
 
-> ☠ Note this code example will stack overflow if you run it - it's just to show the access rules
+> Note this code example will stack overflow if you run it - it's just to show the access rules
 
 ``` Java
 package mypackage;
@@ -400,14 +400,14 @@ For example, see the IntelliJ documentation for the rename refactorings: https:/
 
 ## Class Design Checklist
 
-> ☑ Use intention revealing names everywhere.
+> Use intention revealing names everywhere.
 >
-> ☑ Put the fields and operations that read and modify those fields into the same class.
+> Put the fields and operations that read and modify those fields into the same class.
 >
-> ☑ Organise related classes into packages and organise the packages into a hierarchy.
+> Organise related classes into packages and organise the packages into a hierarchy.
 >
-> ☑ Ensure all fields within classes are `private`.
+> Ensure all fields within classes are `private`.
 >
-> ☑ Ensure that any fields with values that should not be changed once set are marked as `final`.
+> Ensure that any fields with values that should not be changed once set are marked as `final`.
 >
-> ☑ You can always make a class or member more accessible in the future, but it's unlikely you can make something less accessible without breaking your client, so ensure only classes and methods that need to be public are `public` and check for methods that are have no access specifier (and are therefore package private) but only need to be `private` or `protected`.
+> You can always make a class or member more accessible in the future, but it's unlikely you can make something less accessible without breaking your client, so ensure only classes and methods that need to be public are `public` and check for methods that are have no access specifier (and are therefore package private) but only need to be `private` or `protected`.

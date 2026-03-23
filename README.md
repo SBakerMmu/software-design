@@ -1,23 +1,14 @@
-﻿# Writeside build & run
+﻿# Software Design and Architecture Textbook
 
-This project builds a Writerside-generated textbook
+This project builds a JetBrains Writerside authored textbook locally to a website, and the project contains a Github action workflow that will deploy the locally built website to GitHub Pages.
 
+The Github action is triggered by pushes to the `main` branch. It is therefore recommended that any development takes place on a local branch and built and tested locally before merging to `main` and pushing.
 
-and mounts it into an Apache HTTP Server image
+The `buildsite.ps1` script is used to build the website locally using a Writerside builder docker image. The local website is served using another Docker container running a standard Apache web server.
+
+The `buildpdf.ps1` script is used to build  a PDF  locally using the same Writerside builder docker image. The .gitignore file is configured to ignore the generated PDF.
 
 ## Prerequisites
-- Docker Desktop running and available in your PATH (`docker --version` works)
+- PowerShell 7 or later to run the .ps1 scripts (`pwsh -v` works).
+- Docker Desktop running and available in your PATH (`docker --version` works).
 
-## Files
-- `build.ps1` — rebuilds the Writerside output, unzips it into `website/`, builds the Docker image, and restarts a named container.
-
-## To build and run the site with the script
-Because of the use of  relative paths must run the script the repo root
-```powershell
-./build.ps1
-```
-
-If script execution is blocked, use a one-time bypass for that PowerShell session:
-```powershell
-powershell -ExecutionPolicy Bypass -Command "Set-Location D:\scratch\Sample; ./build.ps1"
-```

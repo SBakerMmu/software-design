@@ -154,9 +154,9 @@ The Facade has a limited API that is specific to the needs of the client code. B
 - It hides the names and APIs of the classes performing the work - it is significantly easier for the client code to deal with the Facade than with the **Basket** and **Discounter** classes.
 - We could replace the **Basket** and **Discounter** classes with something else and the client code would not need to change.
 
-> ⚠ If the underlying classes are public, it is easy for a client to ignore your Facade and work directly with the underlying classes. This is fine if the intention of the Facade is to provide a simplified way of achieving a common goal, with the intention that the client should use the underlying classes for more uncommon or complex case, but less so if the intention is to hide implementation details, so visibility is important.
+> If the underlying classes are public, it is easy for a client to ignore your Facade and work directly with the underlying classes. This is fine if the intention of the Facade is to provide a simplified way of achieving a common goal, with the intention that the client should use the underlying classes for more uncommon or complex case, but less so if the intention is to hide implementation details, so visibility is important.
 
-> ⚠ Beware creating Facades that have more than one use case - it is tempting to add more and more functionality to the Facade API, but the objective of the Facade pattern is to simplify things for the client, and a complex Facade API that covers many use cases re-introduces complexity and is likely to be a Single Responsibility Principle (SRP) violation as well.
+> Beware creating Facades that have more than one use case - it is tempting to add more and more functionality to the Facade API, but the objective of the Facade pattern is to simplify things for the client, and a complex Facade API that covers many use cases re-introduces complexity and is likely to be a Single Responsibility Principle (SRP) violation as well.
 
 The general form of the Facade pattern:
 
@@ -246,7 +246,7 @@ final class StatelessFacade {
     }
 }
 ```
-> ⚠ A stateless Façade may have fields (instance variables) but those fields themselves must be immutable or stateless.
+> A stateless Façade may have fields (instance variables) but those fields themselves must be immutable or stateless.
 
 ### Services
 A common term in software architecture is **service**.
@@ -291,7 +291,7 @@ The stateless Facade pattern (Service) is often used as a proxy to a networked s
 
 A **Microservice** architecture is an architecture where separate services implement different parts of a business domain and are run remotely from the client (commonly in Docker style containers).  **Microservices** means small, discrete, independently deployable services that when combined provide a whole business system.
 
-> ⚠ There is little difference between how the **Service** pattern and the **Strategy** pattern are implemented and used. Services are usually much bigger in functionality (they are components) whereas Strategies are typically smaller algorithms. The concrete implementation of a Service is typically selected once when the application starts and not changed for the application lifetime, whereas the point of strategies is they encapsulate different algorithms, and the client code is constantly choosing at runtime (perhaps based on user input) which concrete strategy to use for a given situation.
+> There is little difference between how the **Service** pattern and the **Strategy** pattern are implemented and used. Services are usually much bigger in functionality (they are components) whereas Strategies are typically smaller algorithms. The concrete implementation of a Service is typically selected once when the application starts and not changed for the application lifetime, whereas the point of strategies is they encapsulate different algorithms, and the client code is constantly choosing at runtime (perhaps based on user input) which concrete strategy to use for a given situation.
 
 ## Controllers
 

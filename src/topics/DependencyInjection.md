@@ -65,7 +65,7 @@ This is a reasonable for small applications, but as the application grows in siz
 
 Software libraries called  **Dependency Injection Containers** (DI Containers) exist to take on the responsibility of creating instances of classes and injecting them into other classes. They have ways of changing which concrete implementation are instantiated at runtime, so you can have different configurations of your software product, for example to vary the composition of the product between test and production environments or to configure a software product for different markets.
 
-> ⚠ DI Containers are also referred to as **Inversion of Control** or **IoC** Containers. **Inversion of Control** refers to the fact that control of creating and managing object dependencies moves from the application code to the container itself. Instead of your code instantiating and wiring up dependencies, the container does this automatically based on configuration or annotations.
+> DI Containers are also referred to as **Inversion of Control** or **IoC** Containers. **Inversion of Control** refers to the fact that control of creating and managing object dependencies moves from the application code to the container itself. Instead of your code instantiating and wiring up dependencies, the container does this automatically based on configuration or annotations.
 
 There are many different DI Containers available for Java, and other DI Containers are available for other programming languages and platforms. Most of our examples in the module will not use a DI Container and are manually wired up. However, we can describe how we would wire up the `Basket` and `RealCreditCardService` classes using the Java Spring DI Container.
 
@@ -142,7 +142,7 @@ public class DiExampleApplication {
 7. The container found that the `Basket` creation method required an `AbstractCreditCardService` as a parameter, so it looked for a bean of that type first, which resulted call the @Bean method that resolved (returned an instance of) the `AbstractCreditCardService` interface. The resolved interface was given to the constructor of the `Basket` class.
 8. The container returned the fully constructed `Basket` instance to us.
 
-> ☑ See the DIExample project in the Student code examples to see the full application.
+> See the DIExample project in the Student code examples to see the full application.
 
 Using a DI Container we just *declare* the dependencies, making it the responsibility of the DI Container to create the instances and inject them into the classes that need them.
 
@@ -158,7 +158,7 @@ The `@Scope("prototype")` annotation means that a new instance of the `Basket` c
 
 By specifying the **singleton** scope the DI Container will use a form of the singleton pattern to ensure that (in this case) the same instance of the `AbstractCreditCardService` will always be provided, no matter how many basket instances the DI Container creates. This would replace any Java `static` instances in a codebase.
 
-> ☠ In Spring's DI Container, the default scope is **singleton**. This means that if you do not specify a scope, the DI Container will provide a singleton. We would suggest always specifying the scope explicitly to make your intention clear. Other DI Containers have different defaults.
+> In Spring's DI Container, the default scope is **singleton**. This means that if you do not specify a scope, the DI Container will provide a singleton. We would suggest always specifying the scope explicitly to make your intention clear. Other DI Containers have different defaults.
 
 ## Summary
 

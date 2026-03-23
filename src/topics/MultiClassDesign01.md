@@ -407,7 +407,7 @@ ClassA a = new ClassA();
 a.doZ();
 ```
 
-> ☑ The 'Don't talk to Strangers' principle is a good idea but does increase the size of a class API - if you do expose aggregated classes on your public API, ensure this is justified, and not just being lazy because you can't be bothered to write some wrapper methods. Bock (no date) has further discussion on when and how to apply the principle.
+> The 'Don't talk to Strangers' principle is a good idea but does increase the size of a class API - if you do expose aggregated classes on your public API, ensure this is justified, and not just being lazy because you can't be bothered to write some wrapper methods. Bock (no date) has further discussion on when and how to apply the principle.
 
 ## Increase testability by depending on interfaces rather than concrete classes
 
@@ -575,7 +575,7 @@ basket.chargeCreditCard(" 4111 1111 1111 1111", 2028, 12);
 
 By making Basket depend on an `AbstractCreditCardService` we have gained the ability to vary the concrete supplier so that we can support different test cases. If this looks like the **Strategy** pattern it is -  but rather than varying concrete implementations in our production code to deal with variation in algorithm, we are varying concrete implementations to support testing by creating concrete implementations specifically for test scenarios such as the `takePayment` method call failing.
 
-> ☑ To make classes more testable, when your class takes a dependency on a concrete class (this could be that the class is holding a reference to a concrete class, or a reference to a concrete class passed as a method parameter) consider replacing the concrete class with an interface. Then you can create different concrete classes that implement that interface to support a variety of test cases.
+> To make classes more testable, when your class takes a dependency on a concrete class (this could be that the class is holding a reference to a concrete class, or a reference to a concrete class passed as a method parameter) consider replacing the concrete class with an interface. Then you can create different concrete classes that implement that interface to support a variety of test cases.
 
 We only need to do this when the thing we depend upon is going to change. When we consider testability, more of our dependencies become volatile (subject to change) rather than stable because we want to provide test case specific versions of those dependencies. A good example of what would normally be stable but needs to be changed for testing is the use of time.
 
@@ -646,7 +646,7 @@ public void takePayment(double amount, String cardNumber, int expiryYear, int ex
 
 There is an industry term **flaky tests** for tests that sometimes pass and sometimes fail when the code under test has not changed. The cause is often that the code under test has a dependency on something that is **non-deterministic**  - has different behavior every time you run the test. Common sources of non-deterministic behavior are looking up time, looking up some form of system configuration and use of random numbers.
 
-> ☠ Do not take dependencies on concrete classes that have **non-deterministic** behavior - time being a good example. Always create a provider interface so that you can substitute the real non-deterministic thing for a provider under your control.
+> Do not take dependencies on concrete classes that have **non-deterministic** behavior - time being a good example. Always create a provider interface so that you can substitute the real non-deterministic thing for a provider under your control.
 
 ## The Dependency Inversion Principle (DIP)
 
@@ -667,7 +667,7 @@ In the first sentence and in our context, module means Java class or package. Hi
 
 The second sentence is a way of saying that the abstraction we make (in Java the `interface` we design) should not be influenced by implementation detail, instead the implementation detail should depend on the abstraction we have designed. Take the example where we tested the credit card expiry date. The general idea is that we confirm the credit card date is valid, but the initial implementation was very coupled and dependent on a specific way of doing this using the `LocalDateTime` class (the detail). The idea of testing a credit card expiry date only really needs a year and month value which is reflected in the `interface`. We now write a detail class that happens to use `LocalDateTime`, but only exposes the year and month value as required by the abstraction.
 
->⚠ You may also see the principle being explained in terms of **Policy** and **Mechanism**, or **Policy** and **Detail**. **Policy** is the same as **Abstraction** - a Policy class embodies the high-level business rules and goals. **Mechanism** or **Detail** means the lower level concrete implementation details.
+>You may also see the principle being explained in terms of **Policy** and **Mechanism**, or **Policy** and **Detail**. **Policy** is the same as **Abstraction** - a Policy class embodies the high-level business rules and goals. **Mechanism** or **Detail** means the lower level concrete implementation details.
 
 ## The Adapter Pattern
 

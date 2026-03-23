@@ -64,7 +64,7 @@ In short, we want to change any infrastructure elements of the overall software 
 
 To do this, we are going to use the **Ports and Adapters** architecture (Cockburn and Paz, 2025). The Ports and Adapters architecture is also known as **Hexagonal Architecture**.
 
-> ⚠ There are two spellings of the word *adapter* in use, the American spelling "adapter" and the British spelling "adaptor". The Ports and Adapters architecture uses the American spelling.
+> There are two spellings of the word *adapter* in use, the American spelling "adapter" and the British spelling "adaptor". The Ports and Adapters architecture uses the American spelling.
 
 The way we achieve this is using Dependency Inversion. Instead of the application code depending on the technology code, the dependency is inverted and the application code defines and owns it's interfaces to the outside world. The infrastructure code depends on these interfaces.
 
@@ -113,13 +113,13 @@ The mixing of application code and technology code means that if we want to chan
 
 ### Step 1: Define the interface *provided* by the application code
 
-> ⚠ See the complete *ShippingCostPortsAdapters* example code from the Student GitHub repository.
+> See the complete *ShippingCostPortsAdapters* example code from the Student GitHub repository.
 
 The first step is to define the interface that the application code provides to the outside world. This interface defines the services that the application offers. In this case the interface is very simple, it just takes a country and a weight and returns the shipping charge.
 
 For now, we call the interface `Provided` because this is the interface that is provided the outside world.
 
-> ⚠ a provided interface is the set of public operations that the application code offers to the outside environment.
+> a provided interface is the set of public operations that the application code offers to the outside environment.
 
 ```java
 public enum Region {
@@ -164,7 +164,7 @@ public class ShippingCost {
 
 Next, we define the `Required` interface that the application code will use to look up the shipping charges.
 
-> ⚠ a **required** interface is the set of public operations used (required) by the application code that the application code expects the outside environment to handle on its behalf.
+> a **required** interface is the set of public operations used (required) by the application code that the application code expects the outside environment to handle on its behalf.
 
 ```java
 public interface Required {
@@ -449,17 +449,17 @@ A **driving** port is a port **provided** by the application code and called by 
 
 Typical driving ports are for configuring the application code, performing administration tasks, or providing some business functionality.
 
-> ⚠ You may find descriptions of Ports and Adapters that use the terms *primary* or *inbound* port instead of *driving* port. The terms are interchangeable.
+> You may find descriptions of Ports and Adapters that use the terms *primary* or *inbound* port instead of *driving* port. The terms are interchangeable.
 
 A **driven** port is a port that is defined and **required** by the application code to request services from the outside world.
 
 Typical driven ports are for getting data from a database, calling an external API or sending a notification (such as an email or SMS message).
 
-> ⚠ You may find descriptions of Ports and Adapters that use the terms *secondary* or *outbound* port instead of *driven* port. The terms are interchangeable.
+> You may find descriptions of Ports and Adapters that use the terms *secondary* or *outbound* port instead of *driven* port. The terms are interchangeable.
 
 The term **port** means something provided or required by the application code. in Java, ports are realized as a Java `interface` defined by the application code. Not all programming languages have the concept of an interface as a declared type, so they have to realize ports some other way (abstract classes or other constructs that define a contract).
 
-> ⚠ An interface is not just a set of methods, but includes any application specific types (including Exceptions) that are used in the methods. For example, in the Shipping Charges example, the `Region` enum is part of the port interface and is used in the methods of the port. These types all need to be defined by the application code.
+> An interface is not just a set of methods, but includes any application specific types (including Exceptions) that are used in the methods. For example, in the Shipping Charges example, the `Region` enum is part of the port interface and is used in the methods of the port. These types all need to be defined by the application code.
 
 Driving ports are realized as **provided** interfaces - a provided interface is an interface defined and implemented by the application code.
 
@@ -751,7 +751,7 @@ There is no  right answer to the project structure - it will all depend on the c
 
 One of the most common requirements for an application is to **persist** (save to permanent storage that survives without power) and **query** (fetch from permanent storage) data using technologies such as relational (SQL) databases or files stored on a filesystems.
 
-> ⚠ A filesystem is the technology implemented by the operating system for reading and writing files on some form of persistent storage. The filesystem determines how files are organised, secured and accessed, either locally or over a network. The filesystem also imposes limits on the size of an individual file and the number of files that can be stored. Modern operating systems support multiple filesystems. For example Windows supports CDFS (for reading files from CD-ROM), FAT (legacy file system supported by other operating systems, flash drives and memory cards), NTFS (the default filesystem for Windows), and ReFS (Resilient File System) which supports larger volumes than NTFS. Fortunately the Java standard library working together with the operating system provides a common API for reading and writing files that works across all these filesystems.
+> A filesystem is the technology implemented by the operating system for reading and writing files on some form of persistent storage. The filesystem determines how files are organised, secured and accessed, either locally or over a network. The filesystem also imposes limits on the size of an individual file and the number of files that can be stored. Modern operating systems support multiple filesystems. For example Windows supports CDFS (for reading files from CD-ROM), FAT (legacy file system supported by other operating systems, flash drives and memory cards), NTFS (the default filesystem for Windows), and ReFS (Resilient File System) which supports larger volumes than NTFS. Fortunately the Java standard library working together with the operating system provides a common API for reading and writing files that works across all these filesystems.
 
 In the example the object we are persisting and querying for is the `ShippingCost` class. We could add methods to this class for persisting and querying the data
 
@@ -823,7 +823,7 @@ Arguably 'repository' has become an overloaded word being used for any data pers
 
 The Ports and Adapters architecture has no restrictions on the contract defined by the driven persistence port other than the contract is designed wholly for the convenience of the application and expresses the services required by the application code, and it is probable that your contract is most conveniently expressed as a repository-style interface.
 
-> ⚠ Your required interface should not expose any implementation details of the persistence mechanism, such as SQL queries or file formats. The interface should be designed purely for the convenience of the application code.
+> Your required interface should not expose any implementation details of the persistence mechanism, such as SQL queries or file formats. The interface should be designed purely for the convenience of the application code.
 
 If you look at the `Required` interface above, it handles both reading (query) operations and writing (add, update, delete) operations. Reading and writing are not really similar operations, so you could also split the interface into two separate interfaces, one for reading and one for writing. In real applications, querying (especially ad-hoc queries) can get very complex and so it is common to have a separate driven port for reading data, which might be called a **Query Service**.
 

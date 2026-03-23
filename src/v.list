@@ -2,4 +2,6 @@
 <!DOCTYPE vars SYSTEM "https://resources.jetbrains.com/writerside/1.0/vars.dtd">
 <vars>
     <var name="product" value="Writerside"/>
+    <var name="copyrightFrom" value="2025"/>
+    <var name="copyrightTo" value="2026"/>
 </vars>

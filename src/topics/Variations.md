@@ -11,7 +11,7 @@ globally unique 13-digit Identity that would be understood by any organisation i
 the GS1 system. However, if I want to sell via the Amazon website, Amazon uses its own unique 10 alphanumeric character
 product identifier called an Amazon Standard Identification Number (ASIN).
 
-> ⚠ Apparently ASIN exists because Amazon originally had only a 10-character `Id` field in the database which was good
+> Apparently ASIN exists because Amazon originally had only a 10-character `Id` field in the database which was good
 > enough for books (Amazon was originally just a bookseller) and when they expanded into other product types they didn't
 > want to change the database structure.
 > See [https://inventlikeanowner.com/blog/the-story-behind-asins-amazon-standard-identification-numbers/](https://inventlikeanowner.com/blog/the-story-behind-asins-amazon-standard-identification-numbers/).
@@ -131,7 +131,7 @@ public abstract class Product {
 Now we use class inheritance to support two variations of products that have different identities - `RetailProduct` is
 for shops and uses GTIN13 as an identity, `AmazonProduct` is for the Amazon website and uses ASIN as an identity.
 
-> ⚠ By adding the concept of Ids to Product we have turned it into an **Entity**. Entity is a design or modelling
+> By adding the concept of Ids to Product we have turned it into an **Entity**. Entity is a design or modelling
 > concept - not a Java language feature.
 >
 > Entities are defined by their identity, not the values in their fields. This means that even if the attributes of an

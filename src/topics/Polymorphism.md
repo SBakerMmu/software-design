@@ -178,7 +178,7 @@ class DiscountedPrice {
 
 The DiscountedPrice class contains the class invariant check, so any client of the DiscountedPrice is guaranteed that it is valid. Because the class is immutable, we can calculate the selling price once in the constructor and store the derived value. Here we are trading storage space vs computation time every time the value is calculated.
 
-> ⚠ Prefer optimising computation by calculating the value and storing it if there are a small number of instances that get used a lot. Optimise storage if there are many instances that get used a little.
+> Prefer optimising computation by calculating the value and storing it if there are a small number of instances that get used a lot. Optimise storage if there are many instances that get used a little.
 
 We have now used Value Objects to model both full and discounted prices. However, the clients of Product don't care if the product is full price or discounted. The client just wants to know how much the Product costs.
 
