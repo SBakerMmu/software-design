@@ -1,0 +1,12 @@
+﻿# a trailing `/` means "ignore this directory" rather than a file with the same name.
+# JetBrains IDE project metadata and local workspace settings.
+.idea/
+
+# Build artifacts.
+output/
+
+# Unzipped website.
+website/
+
+# PDF artifacts.
+pdf/

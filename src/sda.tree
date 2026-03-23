@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE instance-profile
+        SYSTEM "https://resources.jetbrains.com/writerside/1.0/product-profile.dtd">
+
+<instance-profile id="sda"
+                 name="Software Design and Architecture"
+                 start-page="Home.md">
+
+    <toc-element topic="Home.md" toc-title="Software Design and Architecture"/>
+    <toc-element topic="JavaRecap.md" toc-title="Java Recap"/>
+    <toc-element topic="SingleClassDesign01.md" toc-title="Single class design (1): Access control"/>
+    <toc-element topic="SingleClassDesign02.md" toc-title="Single class design (2): Contracts"/>
+    <toc-element topic="SingleClassDesign03.md" toc-title="Single class design (3): Value Objects"/>
+    <toc-element topic="Polymorphism.md"/>
+    <toc-element topic="Strategy.md"  toc-title="Handling variation using the Strategy Pattern"/>
+    <toc-element topic="Variations.md" toc-title="More ways of handling variations"/>
+    <toc-element topic="Factories.md" toc-title="Patterns for creating Objects"/>
+    <toc-element topic="Pipelines.md" toc-title="Adding or changing behavior with Pipelines"/>
+    <toc-element topic="Observers.md" toc-title="Adding or changing behavior with Observers"/>
+    <toc-element topic="Commands.md" />
+    <toc-element topic="MultiClassDesign01.md" toc-title="Designing with multiple classes (1): Maintainable Code"/>
+    <toc-element topic="MultiClassDesign02.md" toc-title="Designing with multiple classes (2): Patterns"/>
+    <toc-element topic="States.md" toc-title="State Machines and the State Pattern"/>
+    <toc-element topic="Dependencies.md"/>
+    <toc-element topic="DependencyInjection.md" toc-title="Dependency Injection"/>
+    <toc-element topic="PortsAndAdapters.md" toc-title="Ports and Adapters or Hexagonal Architecture"/>
+    <toc-element topic="CleanArchitecture.md" toc-title="Clean Architecture"/>
+    <toc-element topic="Documentation.md" toc-title="Documenting Software Design"/>
+    <toc-element topic="OODALoops.md" toc-title="Design thinking and problem-solving with OODA loops"/>
+
+</instance-profile>

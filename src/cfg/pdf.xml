@@ -1,0 +1,11 @@
+﻿<pdf landscape="false">
+    <cover-page>
+        <title>Sample</title>
+        <description>Sample Application</description>
+        <copyright>© 2024</copyright>
+    </cover-page>
+    <header>Text in header</header>
+    <footer>Text in footer</footer>
+    <toc-title>Title for Table of Contents page</toc-title>
+    <layout>Windows</layout>
+</pdf>
