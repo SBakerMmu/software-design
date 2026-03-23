@@ -1,0 +1,285 @@
+<!DOCTYPE html SYSTEM "about:legacy-compat">
+<html lang="en-US" data-preset="contrast" data-primary-color="#307FFF"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="robots" content="noindex"><meta name="built-on" content="2026-03-23T15:44:20.424117993"><title>Adding or changing behavior of closed classes with Pipelines | Software Design and Architecture</title><script type="application/json" id="virtual-toc-data">[{"id":"utility-classes-and-helper-methods","level":0,"title":"Utility Classes and Helper Methods","anchor":"#utility-classes-and-helper-methods"},{"id":"adding-methods-to-interfaces-and-providing-a-default-implementation","level":0,"title":"Adding Methods to Interfaces and providing a default implementation","anchor":"#adding-methods-to-interfaces-and-providing-a-default-implementation"},{"id":"adding-to-or-changing-behaviors-using-decorators","level":0,"title":"Adding to or Changing behaviors using Decorators","anchor":"#adding-to-or-changing-behaviors-using-decorators"},{"id":"changing-decorators-into-chains-of-responsibility","level":0,"title":"Changing Decorators into Chains of Responsibility","anchor":"#changing-decorators-into-chains-of-responsibility"},{"id":"chains-and-pipelines","level":0,"title":"Chains and Pipelines","anchor":"#chains-and-pipelines"}]</script><script type="application/json" id="topic-shortcuts"></script><link href="https://resources.jetbrains.com/writerside/apidoc/6.26.0-b913/app.css" rel="stylesheet"><meta name="msapplication-TileColor" content="#000000"><link rel="apple-touch-icon" sizes="180x180" href="https://jetbrains.com/apple-touch-icon.png"><link rel="icon" type="image/png" sizes="32x32" href="https://jetbrains.com/favicon-32x32.png"><link rel="icon" type="image/png" sizes="16x16" href="https://jetbrains.com/favicon-16x16.png"><meta name="msapplication-TileImage" content="https://resources.jetbrains.com/storage/ui/favicons/mstile-144x144.png"><meta name="msapplication-square70x70logo" content="https://resources.jetbrains.com/storage/ui/favicons/mstile-70x70.png"><meta name="msapplication-square150x150logo" content="https://resources.jetbrains.com/storage/ui/favicons/mstile-150x150.png"><meta name="msapplication-wide310x150logo" content="https://resources.jetbrains.com/storage/ui/favicons/mstile-310x150.png"><meta name="msapplication-square310x310logo" content="https://resources.jetbrains.com/storage/ui/favicons/mstile-310x310.png"><meta name="image" content=""><!-- Open Graph --><meta property="og:title" content="Adding or changing behavior of closed classes with Pipelines | Software Design and Architecture"><meta property="og:description" content=""><meta property="og:image" content=""><meta property="og:site_name" content="Software Design and Architecture Help"><meta property="og:type" content="website"><meta property="og:locale" content="en_US"><meta property="og:url" content="writerside-documentation/pipelines.html"><!-- End Open Graph --><!-- Twitter Card --><meta name="twitter:card" content="summary_large_image"><meta name="twitter:site" content=""><meta name="twitter:title" content="Adding or changing behavior of closed classes with Pipelines | Software Design and Architecture"><meta name="twitter:description" content=""><meta name="twitter:creator" content=""><meta name="twitter:image:src" content=""><!-- End Twitter Card --><!-- Schema.org WebPage --><script type="application/ld+json">{
+    "@context": "http://schema.org",
+    "@type": "WebPage",
+    "@id": "writerside-documentation/pipelines.html#webpage",
+    "url": "writerside-documentation/pipelines.html",
+    "name": "Adding or changing behavior of closed classes with Pipelines | Software Design and Architecture",
+    "description": "",
+    "image": "",
+    "inLanguage":"en-US"
+}</script><!-- End Schema.org --><!-- Schema.org WebSite --><script type="application/ld+json">{
+    "@type": "WebSite",
+    "@id": "writerside-documentation/#website",
+    "url": "writerside-documentation/",
+    "name": "Software Design and Architecture Help"
+}</script><!-- End Schema.org --></head><body data-id="Pipelines" data-main-title="Adding or changing behavior of closed classes with Pipelines" data-article-props="{&quot;seeAlsoStyle&quot;:&quot;links&quot;}" data-template="article" data-breadcrumbs=""><div class="wrapper"><main class="panel _main"><header class="panel__header"><div class="container"><h3>Software Design and Architecture  Help</h3><div class="panel-trigger"></div></div></header><section class="panel__content"><div class="container"><article class="article" data-shortcut-switcher="inactive"><h1 data-toc="Pipelines" id="Pipelines.md">Adding or changing behavior of closed classes with Pipelines</h1><p id="z4xyo32_3">We have discussed that classes that a subject to variation are open for extension but closed for modification - the open/closed principle (OCP).</p><p id="z4xyo32_4">An ideal design would allow you to extend (introduce another variation) by writing only new code, rather than modifying existing code. Classes and methods are &quot;open for extension&quot; (open meaning available to be extended) by having a mechanism for adding a variation and &quot;closed for modification&quot; (closed meaning completed and forbidden to be changed) which means that extension does not require the original source code to change.</p><p id="z4xyo32_5">There are other ways to change or add to the behavior of an existing class.</p><section class="chapter"><h2 id="utility-classes-and-helper-methods" data-toc="utility-classes-and-helper-methods">Utility Classes and Helper Methods</h2><p id="z4xyo32_11">There may be times when you need to add additional functionality to a class, and you do not have the ability to extend or change the source code for the original class.</p><p id="z4xyo32_12">For example, you are given the Price class and cannot change it, but want to split the Price into Pounds and Pence. We can write <span class="control" id="z4xyo32_16">Helper Methods</span> in a utility class.</p><div class="code-block" data-lang="java">
+final class PriceUtility {
+
+
+    private PriceUtility()
+    {
+    }
+
+    public static double getPounds(Price price)
+    {
+        return Math.floor(price.get());
+    }
+
+    public static double getPence(Price price)
+    {
+        return price.get() - getPounds(price);
+    }
+}
+
+//Usage
+
+PriceUtility.getPounds(product.getPrice());
+PriceUtility.getPence(product.getPrice());
+
+</div><p id="z4xyo32_14">There are some specific features about this utility class. It is never intended to be instantiated because we just need a class to hold some static helper methods. To achieve this:</p><ul class="list _bullet" id="z4xyo32_15"><li class="list__item" id="z4xyo32_17"><p id="z4xyo32_21">The utility class entirely consists of <code class="code" id="z4xyo32_22">static</code> methods and has no fields.</p></li><li class="list__item" id="z4xyo32_18"><p id="z4xyo32_23">The class has a private default constructor, so no code can ever create an instance of the class.</p></li><li class="list__item" id="z4xyo32_19"><p id="z4xyo32_24">The class is declared <code class="code" id="z4xyo32_25">final</code>. The <code class="code" id="z4xyo32_26">final</code> keyword prevents anyone from inheriting (subclassing using the <code class="code" id="z4xyo32_27">extends</code> keyword) the class.</p></li><li class="list__item" id="z4xyo32_20"><p id="z4xyo32_28">Because a final class never has any subclasses, the methods of a final class can never be overridden.</p></li></ul></section><section class="chapter"><h2 id="adding-methods-to-interfaces-and-providing-a-default-implementation" data-toc="adding-methods-to-interfaces-and-providing-a-default-implementation">Adding Methods to Interfaces and providing a default implementation</h2><p id="z4xyo32_29">We have already discussed that any methods defined by a Java interface are inherently abstract, and that any class that implements the interface must provide concrete implementations of all the abstract methods.</p><p id="z4xyo32_30">If we add another abstract method to the interface, then all classes that implement the interface will have to implement the new method.</p><p id="z4xyo32_31">It is possible to write concrete methods as part of a Java interface with an implementation, providing these methods are <code class="code" id="z4xyo32_34">private</code>, <code class="code" id="z4xyo32_35">static</code> or <code class="code" id="z4xyo32_36">default</code>.</p><p id="z4xyo32_32">A default method is a method declared in an interface with the <code class="code" id="z4xyo32_37">default</code> modifier and provides a default implementation for any class that implements the interface. Default methods can only use their parameters or other methods declared within the interface.</p><p id="z4xyo32_33">Default methods on interfaces therefore allow you to add a method to the interface without having to change (re-open) all implementing classes, providing the default behavior can be implemented entirely using other members of the interface. Default methods can be overridden by concrete classes if the concrete class needs a different implementation to the default.</p></section><section class="chapter"><h2 id="adding-to-or-changing-behaviors-using-decorators" data-toc="adding-to-or-changing-behaviors-using-decorators">Adding to or Changing behaviors using Decorators</h2><p id="z4xyo32_38">In a previous example we had a Product class that represented a product we might sell in a store or on Amazon. These products have the characteristic that they have a fixed specification which never changes - customers would not want to order a product from a website based on its description and a photo and get something different.</p><p id="z4xyo32_39">If the product specification changed, then we would create a new product identity (a new GTIN13 or ASIN code) and a new product record. For example the specification of a T-Shirt is its style, its colour and its size. If we change any one of those attributes, then it becomes a different version of the T-Shirt. In our warehouse we would be careful to keep the stocks of the old product version, and the new product version separate.</p><p id="z4xyo32_40">Some products do not have a fixed specification. In this example we will consider a pizza restaurant. In our pizza restaurant, pizzas are very variable because customers can choose their preferred pizza base, sauce, toppings and cheese. This presents a challenge for designing a point of sale (POS) software that takes the order, prices it and prints a paper ticket for the kitchen to make up the order.</p><p id="z4xyo32_41">We could try to create a GTIN or other product code and matching description to represent every combination, but this would be potentially hundreds or thousands of product codes and is not a good solution - adding just one new option would create the need for adding many new product codes.</p><p id="z4xyo32_42">Instead, we can design a description of the product that builds up in layers, a bit like a pizza is built in layers.</p><p id="z4xyo32_43">Analysis of pizza as a product shows that a pizza is a layered product</p><ul class="list _bullet" id="z4xyo32_44"><li class="list__item" id="z4xyo32_79"><p id="z4xyo32_83">There is exactly one (written as <code class="code" id="z4xyo32_84">1..1</code>) pizza base - examples Italian, Thin and Stuffed Crust.</p></li><li class="list__item" id="z4xyo32_80"><p id="z4xyo32_85">There is zero or one (written as <code class="code" id="z4xyo32_86">0..1</code>) sauces - examples no sauce, tomato and BBQ.</p></li><li class="list__item" id="z4xyo32_81"><p id="z4xyo32_87">There are zero to many (written as <code class="code" id="z4xyo32_88">0..*</code>) toppings - options are no toppings, pepperoni, mushrooms, onion, pineapple, chilli, etc</p></li><li class="list__item" id="z4xyo32_82"><p id="z4xyo32_89">There is <code class="code" id="z4xyo32_90">0..1</code> cheese option - no cheese, Mozzarella or Cheddar</p></li></ul><p id="z4xyo32_45">We can see from this analysis only the base is mandatory (in theory a customer could order just a base without sauce, topping or cheese) and all the other layers are optional. As a (sort of) diagram we can show the layers</p><div class="code-block" data-lang="none">
+0..1 cheese
+0..* toppings
+0..1 sauce
+1..1 base
+</div><ul class="list _bullet" id="z4xyo32_47"><li class="list__item" id="z4xyo32_91"><p id="z4xyo32_94">We require a method of building an object that represents a pizza order by adding and removing optional elements.</p></li><li class="list__item" id="z4xyo32_92"><p id="z4xyo32_95">We need a getDescription() method to return a description of the pizza for printing on the customer's bill and on the order sent to the kitchen.</p></li><li class="list__item" id="z4xyo32_93"><p id="z4xyo32_96">We need a getPrice() method to determines the price of the Pizza based on the options the customer has selected.</p></li></ul><p id="z4xyo32_48">We start with an interface that describes the behavior we require and a helper method to display the result.</p><aside class="prompt" data-type="tip" data-title="" id="z4xyo32_49"><p id="z4xyo32_97">⚠ Following the guidance for class design, examples should really use Value Objects for descriptions and prices, but have used primitives for now to simplify the example</p></aside><div class="code-block" data-lang="java">
+interface PizzaComponent {
+    String getDescription();
+    double getPrice();
+}
+
+private static void show(PizzaComponent pizza) {
+    System.out.format(&quot;Order for %s\n&quot;, pizza.getDescription());
+    System.out.format(&quot;Price %.2f\n&quot;, pizza.getPrice());
+}
+</div><p id="z4xyo32_51">A pizza starts with a base, so we create a class representing a PizzaBase that implements the PizzaComponent interface.</p><div class="code-block" data-lang="java">
+class PizzaBase implements PizzaComponent {
+
+    private final String name;
+    private final double price;
+
+    PizzaBase(String name, double price) {
+        this.name = name;
+        this.price = price;
+    }
+
+    @Override
+    public String getDescription() {
+        return String.format(&quot;%s Base&quot;, name);
+    }
+
+    @Override
+    public double getPrice() {
+        return price;
+    }
+}
+</div><p id="z4xyo32_53">Exercising the interface produces the expected result, even if we do not get a very exciting Pizza.</p><div class="code-block" data-lang="java">
+PizzaComponent base = new PizzaBase(&quot;Italian&quot;,2.50d);
+show(base);
+
+//Output
+Order for Italian Base
+Price 2.50
+</div><p id="z4xyo32_55">We can create another class representing the sauce, that aggregates the previous PizzaComponent and 'layers' the sauce around the previous component.</p><div class="code-block" data-lang="java">
+class Sauce implements PizzaComponent {
+
+    private final PizzaComponent component;
+    private final String name;
+    private final double price;
+
+    public Sauce(PizzaComponent component, String name, double price) {
+        this.component = component;
+        this.name = name;
+        this.price = price;
+    }
+
+
+    @Override
+    public String getDescription() {
+        return String.format(&quot;%s, %s Sauce&quot;, component.getDescription(), name);
+    }
+
+    @Override
+    public double getPrice() {
+        return component.getPrice() + price;
+    }
+}
+</div><p id="z4xyo32_57">Now we can build our Pizza out of components</p><div class="code-block" data-lang="java">
+    PizzaComponent base = new PizzaBase(&quot;Italian&quot;,2.50d);
+    PizzaComponent sauce = new Sauce(base, &quot;Tomato&quot;, 2.00);
+    show(sauce);
+
+//Output
+Order for Italian Base, Tomato Sauce
+Price 4.50
+</div><ul class="list _bullet" id="z4xyo32_59"><li class="list__item" id="z4xyo32_98"><p id="z4xyo32_101">The <code class="code" id="z4xyo32_102">Sauce</code> class <span class="control" id="z4xyo32_103">aggregates</span> (wraps) a <code class="code" id="z4xyo32_104">PizzaComponentInterface</code>, so when we call any of the <code class="code" id="z4xyo32_105">PizzaComponentInterface</code> operations on the instance of the Sauce class it can call the same method on the wrapped instance, adding to or changing the output of the call to the previous component. In this case we are adding to the result of the call to the previous component in the case of <code class="code" id="z4xyo32_106">getPrice()</code> and modifying the result in the case of <code class="code" id="z4xyo32_107">getDescription()</code>;</p></li><li class="list__item" id="z4xyo32_99"><p id="z4xyo32_108">Both the <code class="code" id="z4xyo32_109">PizzaBase</code> and <code class="code" id="z4xyo32_110">Sauce</code> classes implement the <code class="code" id="z4xyo32_111">PizzaComponentInterface</code>, so the client code (in this example the <code class="code" id="z4xyo32_112">show()</code> function) works with the <code class="code" id="z4xyo32_113">PizzaComponentInterface</code>, so it doesn't know which actual (concrete) component it is talking to. Therefore, we can build an order that just comprises a PizzaBase instance or comprises instances of Sauce and PizzaBase. Where we have wrapped the PizzaBase component, we have added functionality to our PizzaBase.</p></li><li class="list__item" id="z4xyo32_100"><p id="z4xyo32_114">For this to work all the components must implement the <code class="code" id="z4xyo32_115">PizzaComponentInterface</code>.</p></li></ul><p id="z4xyo32_60">Toppings and cheeses are more implementations of the PizzaComponent interface, again wrapping (aggregating) the previous chain of components.</p><div class="code-block" data-lang="java">
+
+class Topping implements PizzaComponent {
+
+    private final PizzaComponent component;
+    private final String name;
+    private final double price;
+
+    public Topping(PizzaComponent component, String name, double price) {
+        this.component = component;
+        this.name = name;
+        this.price = price;
+    }
+
+
+    @Override
+    public String getDescription() {
+        return String.format(&quot;%s, %s Topping&quot;, component.getDescription(), name);
+    }
+
+    @Override
+    public double getPrice() {
+        return component.getPrice() + price;
+    }
+}
+
+class Cheese implements PizzaComponent {
+
+    private final PizzaComponent component;
+    private final String description;
+    private final double price;
+
+    public Cheese(PizzaComponent component, String description, double price) {
+        this.component = component;
+        this.description = description;
+        this.price = price;
+    }
+
+
+    @Override
+    public String getDescription() {
+        return String.format(&quot;%s, %s Cheese&quot;, component.getDescription(), description);
+    }
+
+    @Override
+    public double getPrice() {
+        return component.getPrice() + price;
+    }
+}
+</div><p id="z4xyo32_62">Now we can build our Pizza out of more components.</p><div class="code-block" data-lang="java">
+PizzaComponent base = new PizzaBase(&quot;Italian&quot;,2.50d);
+PizzaComponent sauce = new Sauce(base, &quot;Tomato&quot;, 2.00);
+PizzaComponent topping =  new Topping(sauce, &quot;Pepperoni&quot;, 0.75d);
+PizzaComponent cheese = new Cheese(topping,&quot;Mozzarella&quot;, 1.30d);
+show(cheese);
+
+//Output
+Order for Italian Base, Tomato Sauce, Pepperoni Topping, Mozzarella Cheese
+Price 6.55
+</div><p id="z4xyo32_64">We could even format the code to resemble the actual layering in real Pizzas.</p><div class="code-block" data-lang="java">
+
+ PizzaComponent pizza = new Cheese(
+                                    new Topping(
+                                        new Sauce(
+                                            new PizzaBase(&quot;Stuffed Crust&quot;, 3.80d),
+                                                &quot;BBQ&quot;, 2.50d
+                                        ), &quot;Mushroom&quot;, 0.50d
+                                    ), &quot;Cheddar&quot;, 1.50d
+                                );
+
+show(pizza);
+
+//Output
+Order for Stuffed Crust Base, BBQ Sauce, Mushroom Topping, Cheddar Cheese
+Price 8.30
+</div><p id="z4xyo32_66">Depending on how many components have been linked together, the client code (in this case show()) will call a chain of <code class="code" id="z4xyo32_116">1..*</code> implementations of the PizzaComponent interface.</p><p id="z4xyo32_67">This design pattern is called the <span class="control" id="z4xyo32_117">Decorator</span> (or sometimes the <span class="control" id="z4xyo32_118">Wrapper</span>) pattern, and allows one implementation of the interface to add to or change the call being made to a previous implementation of the interface.</p><p id="z4xyo32_68">In its general form the Decorator pattern looks like this:</p><svg aria-roledescription="classDiagram" role="graphics-document document" viewBox="0 0 425.90625 356"  xmlns="http://www.w3.org/2000/svg" width="425.90625" id="mermaid"><g><defs><marker orient="auto" markerHeight="240" markerWidth="190" refY="7" refX="18" class="marker aggregation classDiagram" id="mermaid_classDiagram-aggregationStart"><path d="M 18,7 L9,13 L1,7 L9,1 Z"></path></marker></defs><defs><marker orient="auto" markerHeight="28" markerWidth="20" refY="7" refX="1" class="marker aggregation classDiagram" id="mermaid_classDiagram-aggregationEnd"><path d="M 18,7 L9,13 L1,7 L9,1 Z"></path></marker></defs><defs><marker orient="auto" markerHeight="240" markerWidth="190" refY="7" refX="18" class="marker extension classDiagram" id="mermaid_classDiagram-extensionStart"><path d="M 1,7 L18,13 V 1 Z"></path></marker></defs><defs><marker orient="auto" markerHeight="28" markerWidth="20" refY="7" refX="1" class="marker extension classDiagram" id="mermaid_classDiagram-extensionEnd"><path d="M 1,1 V 13 L18,7 Z"></path></marker></defs><defs><marker orient="auto" markerHeight="240" markerWidth="190" refY="7" refX="18" class="marker composition classDiagram" id="mermaid_classDiagram-compositionStart"><path d="M 18,7 L9,13 L1,7 L9,1 Z"></path></marker></defs><defs><marker orient="auto" markerHeight="28" markerWidth="20" refY="7" refX="1" class="marker composition classDiagram" id="mermaid_classDiagram-compositionEnd"><path d="M 18,7 L9,13 L1,7 L9,1 Z"></path></marker></defs><defs><marker orient="auto" markerHeight="240" markerWidth="190" refY="7" refX="6" class="marker dependency classDiagram" id="mermaid_classDiagram-dependencyStart"><path d="M 5,7 L9,13 L1,7 L9,1 Z"></path></marker></defs><defs><marker orient="auto" markerHeight="28" markerWidth="20" refY="7" refX="13" class="marker dependency classDiagram" id="mermaid_classDiagram-dependencyEnd"><path d="M 18,7 L9,13 L14,7 L9,1 Z"></path></marker></defs><defs><marker orient="auto" markerHeight="240" markerWidth="190" refY="7" refX="13" class="marker lollipop classDiagram" id="mermaid_classDiagram-lollipopStart"><circle r="6" cy="7" cx="7" fill="transparent" stroke="black"></circle></marker></defs><defs><marker orient="auto" markerHeight="240" markerWidth="190" refY="7" refX="1" class="marker lollipop classDiagram" id="mermaid_classDiagram-lollipopEnd"><circle r="6" cy="7" cx="7" fill="transparent" stroke="black"></circle></marker></defs><g class="root"><g class="clusters"></g><g class="edgePaths"><path marker-start="url(#mermaid_classDiagram-extensionStart)" style="fill:none" class="edge-pattern-dashed relation" id="id_Component_ConcreteComponent_1" d="M153.503,118.689L143.722,126.24C133.942,133.792,114.381,148.896,104.601,167.281C94.82,185.667,94.82,207.333,94.82,218.167L94.82,229"></path><path marker-start="url(#mermaid_classDiagram-extensionStart)" style="fill:none" class="edge-pattern-dashed relation" id="id_Component_ConcreteDecorator_2" d="M219.797,145L219.797,148.167C219.797,151.333,219.797,157.667,225.655,167C231.514,176.333,243.231,188.667,249.089,194.833L254.947,201"></path><path marker-end="url(#mermaid_classDiagram-dependencyEnd)" style="fill:none" class="edge-pattern-dashed relation" id="id_ConcreteDecorator_Component_3" d="M343.445,201L345.011,194.833C346.578,188.667,349.711,176.333,338.587,160.962C327.463,145.591,302.082,127.182,289.391,117.977L276.701,108.773"></path></g><g class="edgeLabels"><g class="edgeLabel"><g transform="translate(0, 0)" class="label"><foreignObject height="0" width="0"><div style="display: inline-block; white-space: nowrap;" xmlns="http://www.w3.org/1999/xhtml"><span class="edgeLabel"></span></div></foreignObject></g></g><g class="edgeLabel"><g transform="translate(0, 0)" class="label"><foreignObject height="0" width="0"><div style="display: inline-block; white-space: nowrap;" xmlns="http://www.w3.org/1999/xhtml"><span class="edgeLabel"></span></div></foreignObject></g></g><g transform="translate(352.84375, 164)" class="edgeLabel"><g transform="translate(-36.140625, -12)" class="label"><foreignObject height="24" width="72.28125"><div style="display: inline-block; white-space: nowrap;" xmlns="http://www.w3.org/1999/xhtml"><span class="edgeLabel"><span class="edgeLabel">&lt;&lt; use &gt;&gt;</span></span></div></foreignObject></g></g></g><g class="nodes"><g transform="translate(219.796875, 67.5)" id="classId-Component-40" class="node default"><rect height="119" width="104.09375" y="-59.5" x="-52.046875" class="outer title-state" style=""></rect><line y2="4.5" y1="4.5" x2="52.046875" x1="-52.046875" class="divider"></line><line y2="20.5" y1="20.5" x2="52.046875" x1="-52.046875" class="divider"></line><g class="label"><foreignObject transform="translate( -39.71875, -52)" height="24" width="79.4375"><div style="display: inline-block; white-space: nowrap;" xmlns="http://www.w3.org/1999/xhtml"><span class="nodeLabel">«interface»</span></div></foreignObject><foreignObject transform="translate( -44.546875, -24)" height="24" width="89.09375" class="classTitle"><div style="display: inline-block; white-space: nowrap;" xmlns="http://www.w3.org/1999/xhtml"><span class="nodeLabel">Component</span></div></foreignObject><foreignObject transform="translate( -44.546875, 28)" height="24" width="77.640625"><div style="display: inline-block; white-space: nowrap;" xmlns="http://www.w3.org/1999/xhtml"><span class="nodeLabel">operation()</span></div></foreignObject></g></g><g transform="translate(94.8203125, 274.5)" id="classId-ConcreteComponent-41" class="node default"><rect height="91" width="173.640625" y="-45.5" x="-86.8203125" class="outer title-state" style=""></rect><line y2="-9.5" y1="-9.5" x2="86.8203125" x1="-86.8203125" class="divider"></line><line y2="6.5" y1="6.5" x2="86.8203125" x1="-86.8203125" class="divider"></line><g class="label"><foreignObject height="0" width="0"><div style="display: inline-block; white-space: nowrap;" xmlns="http://www.w3.org/1999/xhtml"><span class="nodeLabel"></span></div></foreignObject><foreignObject transform="translate( -79.3203125, -38)" height="24" width="158.640625" class="classTitle"><div style="display: inline-block; white-space: nowrap;" xmlns="http://www.w3.org/1999/xhtml"><span class="nodeLabel">ConcreteComponent</span></div></foreignObject><foreignObject transform="translate( -79.3203125, 14)" height="24" width="77.640625"><div style="display: inline-block; white-space: nowrap;" xmlns="http://www.w3.org/1999/xhtml"><span class="nodeLabel">operation()</span></div></foreignObject></g></g><g transform="translate(324.7734375, 274.5)" id="classId-ConcreteDecorator-42" class="node default"><rect height="147" width="186.265625" y="-73.5" x="-93.1328125" class="outer title-state" style=""></rect><line y2="-37.5" y1="-37.5" x2="93.1328125" x1="-93.1328125" class="divider"></line><line y2="6.5" y1="6.5" x2="93.1328125" x1="-93.1328125" class="divider"></line><g class="label"><foreignObject height="0" width="0"><div style="display: inline-block; white-space: nowrap;" xmlns="http://www.w3.org/1999/xhtml"><span class="nodeLabel"></span></div></foreignObject><foreignObject transform="translate( -72.671875, -66)" height="24" width="145.34375" class="classTitle"><div style="display: inline-block; white-space: nowrap;" xmlns="http://www.w3.org/1999/xhtml"><span class="nodeLabel">ConcreteDecorator</span></div></foreignObject><foreignObject transform="translate( -85.6328125, -26)" height="24" width="171.265625"><div style="display: inline-block; white-space: nowrap;" xmlns="http://www.w3.org/1999/xhtml"><span class="nodeLabel">component: Component</span></div></foreignObject><foreignObject transform="translate( -85.6328125, 14)" height="24" width="164.109375"><div style="display: inline-block; white-space: nowrap;" xmlns="http://www.w3.org/1999/xhtml"><span class="nodeLabel">Decorator(Component)</span></div></foreignObject><foreignObject transform="translate( -85.6328125, 42)" height="24" width="77.640625"><div style="display: inline-block; white-space: nowrap;" xmlns="http://www.w3.org/1999/xhtml"><span class="nodeLabel">operation()</span></div></foreignObject></g></g></g></g></g></svg><p id="z4xyo32_70">Define the interface for the component that needs decorating.</p><div class="code-block" data-lang="java">
+ interface Component {
+     void operation();
+}
+</div><p id="z4xyo32_72">Then implement one or more concrete components that implement the Component interface and write the component functionality.</p><div class="code-block" data-lang="java">
+public class ConcreteComponent implements Component {
+    @Override
+    public void operation() {
+        //component functionality here
+    }
+}
+
+</div><p id="z4xyo32_74">Create one or more concrete Decorators that also implement the Component interface. Decorators can add functionality before the call or after the call to the inner component. As the Decorator aggregates a Component interface, then one concrete Decorator could be calling another Decorator(s) or the original Concrete Component.</p><div class="code-block" data-lang="java">
+class ConcreteDecorator implements Component{
+    private final Component component;
+
+    public ConcreteDecorator(Component component) {
+        this.component = component;
+    }
+
+    @Override
+    public void operation() {
+        //Decorator can add functionality before the call to the inner component
+        //including changing any parameters
+        component.operation();
+        //Decorator can add functionality after the call to the inner component
+        //including changing the return from the inner component
+    }
+}
+</div><p id="z4xyo32_76">The client code is unaware if they are referencing the original component or a decorator.</p><div class="code-block" data-lang="java">
+Component component = new ConcreteComponent();
+component  = new ConcreteDecorator(component);
+component.operation();
+</div><p id="z4xyo32_78">Decorators provide a form of subclassing. In Java subclassing the subclass extends the superclass and can add or replace functionality provided by the superclass. Using conventional subclassing the functionality is decided at compile time. With decorators, the functionality is decided dynamically at runtime by adding one or more decorators.</p></section><section class="chapter"><h2 id="changing-decorators-into-chains-of-responsibility" data-toc="changing-decorators-into-chains-of-responsibility">Changing Decorators into Chains of Responsibility</h2><p id="z4xyo32_119">In the pizza example, the operation implementation in the Decorator (in the example 'getPrice' or 'getDescription' operations) always called the same operation on the inner component, so it always passed the call from the client down the chain of Decorators until the call chain ended on the original component we wanted to decorate.</p><p id="z4xyo32_120">We could write a form of decorator that <span class="control" id="z4xyo32_140">handled</span> the operation itself and does not pass it on to the inner component. For example, imagine we wanted to look something up in a database, but we have two or more databases that might contain the record (looking up academic references would be an example, there are potentially many databases to search). We would assemble a chain of components as before, but in this case:</p><ol class="list _decimal" id="z4xyo32_121" type="1"><li class="list__item" id="z4xyo32_141"><p id="z4xyo32_145">The outermost component looks up in the first database, if it succeeds, it returns the result and does not pass the call on to its inner component.</p></li><li class="list__item" id="z4xyo32_142"><p id="z4xyo32_146">If outermost component looks up in the first database and the lookup fails, the outermost component passes the call onto to its inner component to try.</p></li><li class="list__item" id="z4xyo32_143"><p id="z4xyo32_147">The next component looks up in the second database and again, the lookup either succeeds or fails, so the component either returns the result or passes onto its inner component.</p></li><li class="list__item" id="z4xyo32_144"><p id="z4xyo32_148">Any unhandled calls go down the chain until it reaches the final component. The final component is the last chance, so if the call chain reaches the final component, then this is either an error or the final component implements some default behavior.</p></li></ol><p id="z4xyo32_122">For this example, we start by defining the interface to look up a <span class="control" id="z4xyo32_149">Digital Object Identifier</span> (<span class="control" id="z4xyo32_150">DOI</span>). A DOI is a permanent identifier for digital artifacts such as journal articles, research reports, data sets, and official publications. See <a href="https://www.doi.org/the-identifier/what-is-a-doi/" id="z4xyo32_151" data-external="true" rel="noopener noreferrer" target="_blank">https://www.doi.org/the-identifier/what-is-a-doi/</a>. DOIs are another globally unique identity system like the GTIN identifier we used earlier, and again should be represented using a Value Object in real software.</p><div class="code-block" data-lang="java">
+interface SearchHandler {
+    boolean hasDigitalObject(String doi);
+}
+</div><p id="z4xyo32_124">Write a concrete class that looks up the DOI in a particular database. We would write one of these for each database we want to consult. If the reference was not found in the database, pass on to the next implementation of <code class="code" id="z4xyo32_152">SearchHandler</code>.</p><div class="code-block" data-lang="java">
+class DatabaseHandler implements SearchHandler {
+    private final SearchHandler successor;
+
+    public DatabaseHandler(SearchHandler successor) {
+        this.successor = successor;
+    }
+
+    @Override
+    public boolean hasDigitalObject(String doi) {
+        boolean lookup = lookupInDatabase(doi);
+        if (lookup) return true;
+            //Failed to handle the call, pass on to successor
+        else return successor.hasDigitalObject(doi);
+    }
+
+    private boolean lookupInDatabase(String doi) {
+        //look up from database, return true or false if exists
+        return false;
+    }
+}
+</div><p id="z4xyo32_126">The final handler in the chain must process the call because there are no more successors to pass to call on to. In this case we just return false. The last one in the chain is called a <span class="control" id="z4xyo32_153">Default Handler</span>. In this case there must be no more databases to look in, so we just return false.</p><div class="code-block" data-lang="java">
+
+class DefaultHandler implements SearchHandler{
+    @Override
+    public boolean hasDigitalObject(String doi) {
+        return false;
+    }
+}
+</div><p id="z4xyo32_128">At runtime, we can assemble a chain of these database lookups, each responsible for a particular database. The final DefaultHandler at the end of the chain just returns false.</p><div class="code-block" data-lang="java">
+SearchHandler handler = new DatabaseHandler(new DefaultHandler());
+handler.hasDigitalObject(&quot;10.1000/182&quot;);
+</div><p id="z4xyo32_130">This pattern is called the <span class="control" id="z4xyo32_154">Chain of Responsibility</span> pattern - the code structure is almost the same as the Decorator pattern, the difference between the Decorator Pattern and the Chain of Responsibility is that Decorators <span class="emphasis" id="z4xyo32_155">always</span> pass on the call to the next component in the chain (the successor), whereas with this pattern the handler <span class="emphasis" id="z4xyo32_156">sometimes</span> passes on the call to the successor, depending on if the handler could handle the call themselves or not.</p><p id="z4xyo32_131">The general form for the Chain of Responsibility pattern:</p><svg aria-roledescription="classDiagram" role="graphics-document document" viewBox="0 0 347.53125 304"  xmlns="http://www.w3.org/2000/svg" width="347.53125" id="mermaid"><g><defs><marker orient="auto" markerHeight="240" markerWidth="190" refY="7" refX="18" class="marker aggregation classDiagram" id="mermaid_classDiagram-aggregationStart"><path d="M 18,7 L9,13 L1,7 L9,1 Z"></path></marker></defs><defs><marker orient="auto" markerHeight="28" markerWidth="20" refY="7" refX="1" class="marker aggregation classDiagram" id="mermaid_classDiagram-aggregationEnd"><path d="M 18,7 L9,13 L1,7 L9,1 Z"></path></marker></defs><defs><marker orient="auto" markerHeight="240" markerWidth="190" refY="7" refX="18" class="marker extension classDiagram" id="mermaid_classDiagram-extensionStart"><path d="M 1,7 L18,13 V 1 Z"></path></marker></defs><defs><marker orient="auto" markerHeight="28" markerWidth="20" refY="7" refX="1" class="marker extension classDiagram" id="mermaid_classDiagram-extensionEnd"><path d="M 1,1 V 13 L18,7 Z"></path></marker></defs><defs><marker orient="auto" markerHeight="240" markerWidth="190" refY="7" refX="18" class="marker composition classDiagram" id="mermaid_classDiagram-compositionStart"><path d="M 18,7 L9,13 L1,7 L9,1 Z"></path></marker></defs><defs><marker orient="auto" markerHeight="28" markerWidth="20" refY="7" refX="1" class="marker composition classDiagram" id="mermaid_classDiagram-compositionEnd"><path d="M 18,7 L9,13 L1,7 L9,1 Z"></path></marker></defs><defs><marker orient="auto" markerHeight="240" markerWidth="190" refY="7" refX="6" class="marker dependency classDiagram" id="mermaid_classDiagram-dependencyStart"><path d="M 5,7 L9,13 L1,7 L9,1 Z"></path></marker></defs><defs><marker orient="auto" markerHeight="28" markerWidth="20" refY="7" refX="13" class="marker dependency classDiagram" id="mermaid_classDiagram-dependencyEnd"><path d="M 18,7 L9,13 L14,7 L9,1 Z"></path></marker></defs><defs><marker orient="auto" markerHeight="240" markerWidth="190" refY="7" refX="13" class="marker lollipop classDiagram" id="mermaid_classDiagram-lollipopStart"><circle r="6" cy="7" cx="7" fill="transparent" stroke="black"></circle></marker></defs><defs><marker orient="auto" markerHeight="240" markerWidth="190" refY="7" refX="1" class="marker lollipop classDiagram" id="mermaid_classDiagram-lollipopEnd"><circle r="6" cy="7" cx="7" fill="transparent" stroke="black"></circle></marker></defs><g class="root"><g class="clusters"></g><g class="edgePaths"><path marker-end="url(#mermaid_classDiagram-extensionEnd)" style="fill:none" class="edge-pattern-dashed relation" id="id_ConcreteHandler_Handler_1" d="M84.195,127L84.195,131.167C84.195,135.333,84.195,143.667,89.977,152.955C95.759,162.244,107.322,172.488,113.104,177.611L118.886,182.733"></path><path marker-end="url(#mermaid_classDiagram-extensionEnd)" style="fill:none" class="edge-pattern-dashed relation" id="id_DefaultHandler_Handler_2" d="M274.961,113L274.961,119.5C274.961,126,274.961,139,269.179,150.622C263.397,162.244,251.834,172.488,246.052,177.611L240.27,182.733"></path></g><g class="edgeLabels"><g class="edgeLabel"><g transform="translate(0, 0)" class="label"><foreignObject height="0" width="0"><div style="display: inline-block; white-space: nowrap;" xmlns="http://www.w3.org/1999/xhtml"><span class="edgeLabel"></span></div></foreignObject></g></g><g class="edgeLabel"><g transform="translate(0, 0)" class="label"><foreignObject height="0" width="0"><div style="display: inline-block; white-space: nowrap;" xmlns="http://www.w3.org/1999/xhtml"><span class="edgeLabel"></span></div></foreignObject></g></g></g><g class="nodes"><g transform="translate(179.578125, 236.5)" id="classId-Handler-74" class="node default"><rect height="119" width="94.4375" y="-59.5" x="-47.21875" class="outer title-state" style=""></rect><line y2="4.5" y1="4.5" x2="47.21875" x1="-47.21875" class="divider"></line><line y2="20.5" y1="20.5" x2="47.21875" x1="-47.21875" class="divider"></line><g class="label"><foreignObject transform="translate( -39.71875, -52)" height="24" width="79.4375"><div style="display: inline-block; white-space: nowrap;" xmlns="http://www.w3.org/1999/xhtml"><span class="nodeLabel">«interface»</span></div></foreignObject><foreignObject transform="translate( -29.875, -24)" height="24" width="59.75" class="classTitle"><div style="display: inline-block; white-space: nowrap;" xmlns="http://www.w3.org/1999/xhtml"><span class="nodeLabel">Handler</span></div></foreignObject><foreignObject transform="translate( -39.71875, 28)" height="24" width="77.640625"><div style="display: inline-block; white-space: nowrap;" xmlns="http://www.w3.org/1999/xhtml"><span class="nodeLabel">operation()</span></div></foreignObject></g></g><g transform="translate(84.1953125, 67.5)" id="classId-ConcreteHandler-75" class="node default"><rect height="119" width="152.390625" y="-59.5" x="-76.1953125" class="outer title-state" style=""></rect><line y2="-23.5" y1="-23.5" x2="76.1953125" x1="-76.1953125" class="divider"></line><line y2="20.5" y1="20.5" x2="76.1953125" x1="-76.1953125" class="divider"></line><g class="label"><foreignObject height="0" width="0"><div style="display: inline-block; white-space: nowrap;" xmlns="http://www.w3.org/1999/xhtml"><span class="nodeLabel"></span></div></foreignObject><foreignObject transform="translate( -64.6484375, -52)" height="24" width="129.296875" class="classTitle"><div style="display: inline-block; white-space: nowrap;" xmlns="http://www.w3.org/1999/xhtml"><span class="nodeLabel">ConcreteHandler</span></div></foreignObject><foreignObject transform="translate( -68.6953125, -12)" height="24" width="137.390625"><div style="display: inline-block; white-space: nowrap;" xmlns="http://www.w3.org/1999/xhtml"><span class="nodeLabel">successor: Handler</span></div></foreignObject><foreignObject transform="translate( -68.6953125, 28)" height="24" width="77.640625"><div style="display: inline-block; white-space: nowrap;" xmlns="http://www.w3.org/1999/xhtml"><span class="nodeLabel">operation()</span></div></foreignObject></g></g><g transform="translate(274.9609375, 67.5)" id="classId-DefaultHandler-76" class="node default"><rect height="91" width="129.140625" y="-45.5" x="-64.5703125" class="outer title-state" style=""></rect><line y2="-9.5" y1="-9.5" x2="64.5703125" x1="-64.5703125" class="divider"></line><line y2="6.5" y1="6.5" x2="64.5703125" x1="-64.5703125" class="divider"></line><g class="label"><foreignObject height="0" width="0"><div style="display: inline-block; white-space: nowrap;" xmlns="http://www.w3.org/1999/xhtml"><span class="nodeLabel"></span></div></foreignObject><foreignObject transform="translate( -57.0703125, -38)" height="24" width="114.140625" class="classTitle"><div style="display: inline-block; white-space: nowrap;" xmlns="http://www.w3.org/1999/xhtml"><span class="nodeLabel">DefaultHandler</span></div></foreignObject><foreignObject transform="translate( -57.0703125, 14)" height="24" width="77.640625"><div style="display: inline-block; white-space: nowrap;" xmlns="http://www.w3.org/1999/xhtml"><span class="nodeLabel">operation()</span></div></foreignObject></g></g></g></g></g></svg><p id="z4xyo32_133">The interface definition is the same as we had with the decorator</p><div class="code-block" data-lang="java">
+interface Handler {
+    void operation();
+}
+</div><p id="z4xyo32_135">We must have a default handler</p><div class="code-block" data-lang="java">
+class DefaultHandler implements Handler {
+    @Override
+    public void operation() {
+        //Final chance to handle the operation
+    }
+}
+</div><p id="z4xyo32_137">and one or more ConcreteHandlers</p><div class="code-block" data-lang="java">
+class ConcreteHandler implements Handler {
+
+    private final Handler successor;
+
+    ConcreteHandler(Handler successor) {
+        this.successor = successor;
+    }
+
+    @Override
+    public void operation() {
+        //if I can handle the operation, do so, else pass onto my successor
+        successor.operation();
+    }
+}
+</div><aside class="prompt" data-type="tip" data-title="" id="z4xyo32_139"><p id="z4xyo32_157">⚠ You may be thinking that you could use a chain of handlers to ensure preconditions before a call and postConditions and class invariants after the call - general advice is that that is not what the pattern is for - Ensuring pre-conditions, post-conditions and the class invariant is an integral part of the class design. Decorators and Handlers are for managing additional responsibilities for a class, whereas pre-conditions, post-conditions and the class invariant are a core responsibility of the class which should not be delegated to other components.</p></aside></section><section class="chapter"><h2 id="chains-and-pipelines" data-toc="chains-and-pipelines">Chains and Pipelines</h2><p id="z4xyo32_158">Decorators provide us with a way of enhancing (adding or changing functionality) an operation. Chains of Responsibility allow different classes to handle an operation. These components can be chained together to make a <span class="control" id="z4xyo32_164">Pipeline</span> for handling an operation requested by a client.</p><p id="z4xyo32_159">In large-scale software systems there is often functionality that we want to add to our code that has nothing to do with the core business functionality. Chaining components can help us satisfy these requirements.</p><div class="table-wrapper"><table class="wide" id="z4xyo32_160"><thead><tr class="ijRowHead" id="z4xyo32_165"><th id="z4xyo32_174"><p>Concern</p></th><th id="z4xyo32_175"><p>Requirement</p></th><th id="z4xyo32_176"><p>Pattern to use</p></th></tr></thead><tbody><tr id="z4xyo32_166"><td id="z4xyo32_177"><p>Security</p></td><td id="z4xyo32_178"><p>Checking if the user has been authenticated and has permission (is authorised) to call the method.</p></td><td id="z4xyo32_179"><p>Chain of Responsibility - if the user is not authenticated or authorised the call chain terminates in the authentication or authorisation handler and is not passed down the chain to the requested service.</p></td></tr><tr id="z4xyo32_167"><td id="z4xyo32_180"><p>Logging</p></td><td id="z4xyo32_181"><p>Logging methods have been called, what parameters were used and what the method call returned.</p></td><td id="z4xyo32_182"><p>Decorator - call is always passed down the chain, logging is additional functionality added to the method call.</p></td></tr><tr id="z4xyo32_168"><td id="z4xyo32_183"><p>Monitoring</p></td><td id="z4xyo32_184"><p>Like logging, but instead of recording details about the call, record how many times the method is called or how long it takes to execute. For example, when the performance of a system slows, we need to understand performance at the method level to see which parts of the system are being slow to respond</p></td><td id="z4xyo32_185"><p>Decorator because the call is always passed down the chain, monitoring is additional functionality added to the method call.</p></td></tr><tr id="z4xyo32_169"><td id="z4xyo32_186"><p>Error handling and retry</p></td><td id="z4xyo32_187"><p>Catching errors and retrying the call. This is particularly useful when we are calling a service over a network or the internet which can have temporary service interruptions due to temporary network loss, temporary service availability due to maintenance, or just being too busy. These are all examples of <span class="control" id="z4xyo32_189">Transient Errors</span>, errors that might correct themselves, so that another attempt may succeed.</p></td><td id="z4xyo32_188"><p>Usually Decorator because the call is always passed down the chain and any errors returned to the caller after a number of retries. A <span class="control" id="z4xyo32_190">Circuit Breaker</span> refuses to pass the call down the chain if more then a certain number of errors have occurred, which is more of a Chain of Responsibility. Circuit Breakers usually reset after some time period.</p></td></tr><tr id="z4xyo32_170"><td id="z4xyo32_191"><p>Timeouts</p></td><td id="z4xyo32_192"><p>Operations that take over a particular time are unlikely to succeed. Terminate the call if it takes longer than required.</p></td><td id="z4xyo32_193"><p>A Chain of Responsibility Component that always forwards the call but can return to its client before the successor call completes.</p></td></tr><tr id="z4xyo32_171"><td id="z4xyo32_194"><p>Rate Limiting</p></td><td id="z4xyo32_195"><p>One way of protecting a system under high load is to limit the rate of calls to prevent a system from failing completely under high load.</p></td><td id="z4xyo32_196"><p>A Decorator that counts the number of calls made per second and waits if the rate limit is exceeded or a Chain of Responsibility if the component returns an error back to the client when the rate is exceeded.</p></td></tr><tr id="z4xyo32_172"><td id="z4xyo32_197"><p>Caching</p></td><td id="z4xyo32_198"><p>Optimizing performance by storing frequently accessed data. For example, once we had looked up an DOI in a database and the database said it existed, we could cache that result, so if the same DOI was queried, we would return the result from a cache and save a slow and expensive call to the database.</p></td><td id="z4xyo32_199"><p>Chain of Responsibility - the cache handler may be able return the required data without passing the call down the chain.</p></td></tr><tr id="z4xyo32_173"><td id="z4xyo32_200"><p>Privacy</p></td><td id="z4xyo32_201"><p>We might scan returns from method calls for confidential information in text such as passwords or other security sensitive information and obscure it.</p></td><td id="z4xyo32_202"><p>Decorator - call is always passed down the chain, but the parameters or return values are altered.</p></td></tr></tbody></table></div><p id="z4xyo32_161">This kind of functionality is called a <span class="control" id="z4xyo32_203">Cross Cutting Concern</span>. They are cross-cutting because they apply to lots (potentially all) of the method calls in a software system. Error Handling, Retry, Rate Limiting and Caching functionality might all need to be applied when calling a system we do not control or is reached over a network (calling web services being a good example) in improve the <span class="control" id="z4xyo32_204">Resilience</span> - the ability to continue to provide a service to a client, even if a downstream service is degraded, despite adverse events and conditions in the rest of the system.</p><p id="z4xyo32_162">The problem with including cross-cutting functionality into the actual method calls is that it adds additional responsibilities to classes which are completely different to their core business responsibility. Using Decorators or Chains of Responsibility separate out these non-business concerns into their own classes. This is an example of following the <span class="control" id="z4xyo32_205">Single Responsibility Principle</span> that we will cover in more detail later, but put simply it means that each class in the chain only has to have one responsibility, and we are not mixing up the code that handles business responsibilities satisfying functional requirements with the technical responsibilities satisfying non-functional requirements.</p><section class="chapter"><h3 id="http-pipelines" data-toc="http-pipelines">HTTP Pipelines</h3><p id="z4xyo32_206">Creating a pipeline of components is a common design for making HTTP requests (you are calling someone else's HTTP service) or responding to HTTP requests (you are a server, serving someone else's request).</p><p id="z4xyo32_207">An HTTP request has an optional document body (for example some JSON) with <code class="code" id="z4xyo32_213">0..*</code> message headers. Headers provide additional details about the request such authentication <span class="control" id="z4xyo32_214">tokens</span> - bits of text that contain data about the user's identity.</p><p id="z4xyo32_208">The structure of an HTTP request is:</p><div class="table-wrapper"><table class="wide" id="z4xyo32_209"><thead><tr class="ijRowHead" id="z4xyo32_215"><th id="z4xyo32_219"><p>Request Part</p></th><th id="z4xyo32_220"><p>Contents</p></th></tr></thead><tbody><tr id="z4xyo32_216"><td id="z4xyo32_221"><p>Start Line</p></td><td id="z4xyo32_222"><p>The HTTP Method (GET, POST etc.) and the request URI</p></td></tr><tr id="z4xyo32_217"><td id="z4xyo32_223"><p>0..* Headers</p></td><td id="z4xyo32_224"><p>Headers are key:value pairs that provide additional details about the request.</p></td></tr><tr id="z4xyo32_218"><td id="z4xyo32_225"><p>0..1 Body</p></td><td id="z4xyo32_226"><p>An optional body, for example a JSON document</p></td></tr></tbody></table></div><p id="z4xyo32_210">The response looks very similar, except the Status Line which holds the HTTP Response Status Code (such as 2xx codes indicating the request was successfully received, understood, and accepted, or 4xx codes to indicate the request has bad syntax or cannot be fulfilled for some reason).</p><div class="table-wrapper"><table class="wide" id="z4xyo32_211"><thead><tr class="ijRowHead" id="z4xyo32_227"><th id="z4xyo32_231"><p>Response Part</p></th><th id="z4xyo32_232"><p>Contents</p></th></tr></thead><tbody><tr id="z4xyo32_228"><td id="z4xyo32_233"><p>Status Line</p></td><td id="z4xyo32_234"><p>The HTTP Status Code</p></td></tr><tr id="z4xyo32_229"><td id="z4xyo32_235"><p>0..* Headers</p></td><td id="z4xyo32_236"><p>Key:value pairs that provide additional details about the response.</p></td></tr><tr id="z4xyo32_230"><td id="z4xyo32_237"><p>0..1 Body</p></td><td id="z4xyo32_238"><p>An optional body, for example a JSON document or HTML Page</p></td></tr></tbody></table></div><ul class="list _bullet" id="z4xyo32_212"><li class="list__item" id="z4xyo32_239"><p id="z4xyo32_241">Request Pipelines (at the client) add additional HTTP headers (such as an authentication token) before the request is sent and then check the value of the HTTP response code, throwing an exception if the response code is not valid (2xx).</p></li><li class="list__item" id="z4xyo32_240"><p id="z4xyo32_242">Response Pipelines (at the server) inspect HTTP headers (for example checking an authentication token) before the request is handled and convert exceptions into a 4xx or 5xx response code. If the requested resource cannot be found, the last handler in the pipeline is a handler that returns a 404 (resource not found) error.</p></li></ul></section></section><div class="last-modified">10 October 2025</div><div data-feedback-placeholder="true"></div><div class="navigation-links _bottom"><a href="factories.html" class="navigation-links__prev">Patterns for creating objects</a><a href="observers.html" class="navigation-links__next">Adding or changing behavior of closed classes using Observers</a></div></article><div id="disqus_thread"></div></div></section></main></div><script src="https://resources.jetbrains.com/writerside/apidoc/6.26.0-b913/app.js"></script></body></html>

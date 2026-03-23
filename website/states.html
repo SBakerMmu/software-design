@@ -1,0 +1,678 @@
+<!DOCTYPE html SYSTEM "about:legacy-compat">
+<html lang="en-US" data-preset="contrast" data-primary-color="#307FFF"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="robots" content="noindex"><meta name="built-on" content="2026-03-23T15:44:20.43350314"><title>Managing state | Software Design and Architecture</title><script type="application/json" id="virtual-toc-data">[{"id":"modelling-the-order-process-using-a-state-transition-table","level":0,"title":"Modelling the order process using a state transition table","anchor":"#modelling-the-order-process-using-a-state-transition-table"},{"id":"coding-a-simple-state-machine","level":0,"title":"Coding a Simple State Machine","anchor":"#coding-a-simple-state-machine"},{"id":"extended-state-machines","level":0,"title":"Extended State Machines","anchor":"#extended-state-machines"},{"id":"the-general-state-pattern","level":0,"title":"The general State pattern","anchor":"#the-general-state-pattern"},{"id":"the-ecommerce-example","level":0,"title":"The Ecommerce Example","anchor":"#the-ecommerce-example"}]</script><script type="application/json" id="topic-shortcuts"></script><link href="https://resources.jetbrains.com/writerside/apidoc/6.26.0-b913/app.css" rel="stylesheet"><meta name="msapplication-TileColor" content="#000000"><link rel="apple-touch-icon" sizes="180x180" href="https://jetbrains.com/apple-touch-icon.png"><link rel="icon" type="image/png" sizes="32x32" href="https://jetbrains.com/favicon-32x32.png"><link rel="icon" type="image/png" sizes="16x16" href="https://jetbrains.com/favicon-16x16.png"><meta name="msapplication-TileImage" content="https://resources.jetbrains.com/storage/ui/favicons/mstile-144x144.png"><meta name="msapplication-square70x70logo" content="https://resources.jetbrains.com/storage/ui/favicons/mstile-70x70.png"><meta name="msapplication-square150x150logo" content="https://resources.jetbrains.com/storage/ui/favicons/mstile-150x150.png"><meta name="msapplication-wide310x150logo" content="https://resources.jetbrains.com/storage/ui/favicons/mstile-310x150.png"><meta name="msapplication-square310x310logo" content="https://resources.jetbrains.com/storage/ui/favicons/mstile-310x310.png"><meta name="image" content=""><!-- Open Graph --><meta property="og:title" content="Managing state | Software Design and Architecture"><meta property="og:description" content=""><meta property="og:image" content=""><meta property="og:site_name" content="Software Design and Architecture Help"><meta property="og:type" content="website"><meta property="og:locale" content="en_US"><meta property="og:url" content="writerside-documentation/states.html"><!-- End Open Graph --><!-- Twitter Card --><meta name="twitter:card" content="summary_large_image"><meta name="twitter:site" content=""><meta name="twitter:title" content="Managing state | Software Design and Architecture"><meta name="twitter:description" content=""><meta name="twitter:creator" content=""><meta name="twitter:image:src" content=""><!-- End Twitter Card --><!-- Schema.org WebPage --><script type="application/ld+json">{
+    "@context": "http://schema.org",
+    "@type": "WebPage",
+    "@id": "writerside-documentation/states.html#webpage",
+    "url": "writerside-documentation/states.html",
+    "name": "Managing state | Software Design and Architecture",
+    "description": "",
+    "image": "",
+    "inLanguage":"en-US"
+}</script><!-- End Schema.org --><!-- Schema.org WebSite --><script type="application/ld+json">{
+    "@type": "WebSite",
+    "@id": "writerside-documentation/#website",
+    "url": "writerside-documentation/",
+    "name": "Software Design and Architecture Help"
+}</script><!-- End Schema.org --></head><body data-id="States" data-main-title="Managing state" data-article-props="{&quot;seeAlsoStyle&quot;:&quot;links&quot;}" data-template="article" data-breadcrumbs=""><div class="wrapper"><main class="panel _main"><header class="panel__header"><div class="container"><h3>Software Design and Architecture  Help</h3><div class="panel-trigger"></div></div></header><section class="panel__content"><div class="container"><article class="article" data-shortcut-switcher="inactive"><h1 data-toc="States" id="States.md">Managing state</h1><p id="pq6w9_3">Previously we defined the <span class="emphasis" id="pq6w9_24">state</span> of an object as being the value(s) of its instance variables at a point in time. It is your responsibility as a developer to ensure that on the completion of every operation, the object's state is valid.</p><p id="pq6w9_4">A common requirement in software design is to represent things that have a lifecycle, and for an object to have a lifecycle state that varies over time. This is a different use of the word &quot;state&quot;, and when discussing state machines means a discrete, named point in the lifecycle of an object.</p><p id="pq6w9_5">When we are thinking about lifecycle state we are concerned that any change from one lifecycle state to another is legal (i.e. allowed by the business rules).</p><p id="pq6w9_6">It is a very useful design technique to model the sequence of states as a <span class="control" id="pq6w9_25">State Machine</span>.</p><p id="pq6w9_7">For example, as a consumer of Ecommerce, you experience the lifecycle of an Ecommerce order through a couple of emails - an order confirmation email when the order is placed and then another email when the order is dispatched. However, an order has a more complex lifecycle than this.</p><p id="pq6w9_8">Order confirmation emails typically state the order number and list the item(s) that make up the order. If the retailer is brave, they will estimate the delivery date.</p><div class="table-wrapper"><table class="" id="pq6w9_9"><thead><tr class="ijRowHead" id="pq6w9_26"><th id="pq6w9_30"><p>Order Number NNNNNNNN</p></th></tr></thead><tbody><tr id="pq6w9_27"><td id="pq6w9_31"><p>Thanks for your order. We&rsquo;ll email you to let you know once your item(s) have dispatched. The estimated delivery date is DD/MM/YYYY</p></td></tr><tr id="pq6w9_28"><td id="pq6w9_32"><p>Order Details (Item, Quantity, Line Price and Total)</p></td></tr><tr id="pq6w9_29"><td id="pq6w9_33"><p>Terms and Conditions</p></td></tr></tbody></table></div><p id="pq6w9_10">The Terms and Conditions section usually has something like, &quot;Please note that your order is not finally confirmed until we have sent you a dispatch confirmation&quot;. This is because the retailer may need to cancel or change the order. Cancellation reasons include having insufficient stock or discovering problems with the payment. Hence, although we have called it an order confirmation email, it is actually an order acknowledgement.</p><p id="pq6w9_11">When an order is received, the warehouse team needs to <span class="control" id="pq6w9_34">pick</span> the order. <span class="control" id="pq6w9_35">Picking</span> requires <span class="control" id="pq6w9_36">pickers</span> to walk around the warehouse locating and collecting the ordered items. Usually, pickers have some form of barcode scanner which scans the EAN13 or other barcode on the product to confirm that the product they have picked is the one on the order. The picked order is then sent to a <span class="control" id="pq6w9_37">packing</span> station for wrapping, boxing and labelling with the customer delivery address. Packed orders are then collected by a courier or delivery company. At the point the order leaves the warehouse, it is <span class="control" id="pq6w9_38">dispatched</span>.</p><aside class="prompt" data-type="tip" data-title="" id="pq6w9_12"><p id="pq6w9_39">⚠ If a warehouse sends out orders directly to customers, then it may be called a Distribution Centre or Fulfilment Centre, but we will use the term warehouse for this example.</p></aside><p id="pq6w9_13">A Dispatch confirmation email is sent when the order leaves the warehouse. Emails typically include details of the courier and details of how to return the order.</p><div class="table-wrapper"><table class="" id="pq6w9_14"><thead><tr class="ijRowHead" id="pq6w9_40"><th id="pq6w9_45"><p>Order Number NNNNNNNN</p></th></tr></thead><tbody><tr id="pq6w9_41"><td id="pq6w9_46"><p>We have now dispatched your order.</p></td></tr><tr id="pq6w9_42"><td id="pq6w9_47"><p>Order Details (Item, Quantity, Line Price and Total)</p></td></tr><tr id="pq6w9_43"><td id="pq6w9_48"><p>Courier Details, Tracking Numbers, Estimated Arrival Date</p></td></tr><tr id="pq6w9_44"><td id="pq6w9_49"><p>Returns information.</p></td></tr></tbody></table></div><p id="pq6w9_15">An ecommerce order has different <span class="control" id="pq6w9_50">states</span> as it can take through its lifecycle. A very simplified example the states of an Ecommerce order are:</p><ul class="list _bullet" id="pq6w9_16"><li class="list__item" id="pq6w9_51"><p id="pq6w9_58">Received - order captured in the database.</p></li><li class="list__item" id="pq6w9_52"><p id="pq6w9_59">Paid - payment has been confirmed.</p></li><li class="list__item" id="pq6w9_53"><p id="pq6w9_60">Picked - all items have been picked in the warehouse ready for packing</p></li><li class="list__item" id="pq6w9_54"><p id="pq6w9_61">Packed - packing complete and ready for collection</p></li><li class="list__item" id="pq6w9_55"><p id="pq6w9_62">Dispatched - order has left the warehouse</p></li><li class="list__item" id="pq6w9_56"><p id="pq6w9_63">Cancelled - the order is cancelled because of a problem with payment, item out of stock, item damaged or similar.</p></li><li class="list__item" id="pq6w9_57"><p id="pq6w9_64">Returned - A previously dispatched order has been returned to the Warehouse by the customer.</p></li></ul><p id="pq6w9_17">The process of leaving one state and arriving at another is called a <span class="control" id="pq6w9_65">State Transition</span>, so the change in state from Picked to Packed is a transition. There are rules about which transitions are legal - you cannot transition directly from Received to Packed for example, but it is legal to transition to the one of the Cancelled state directly from the Received state.</p><p id="pq6w9_18">We can use a <span class="control" id="pq6w9_66">state machine</span> as a model to design and represent things that exhibit distinct states, transitions between those states, and actions triggered by those transitions. In real world, the combination of the number of states, the rules around which state transitions are legal, and what happens when we transition between states gets very complicated, so using State Machines is a great way to manage the complexity and ensure that all the code lives in one place (DRY and SRP principles).</p><section class="chapter"><h2 id="modelling-the-order-process-using-a-state-transition-table" data-toc="modelling-the-order-process-using-a-state-transition-table">Modelling the order process using a state transition table</h2><p id="pq6w9_67">One way of modelling our order process is using a <span class="control" id="pq6w9_83">state transition table</span>. There are different ways of organising a state transition table, but the basic concept is that it shows the current state, an event that triggers a transition, the next (or target) state and any actions taken because of the transition from the current state to the next state.</p><p id="pq6w9_68">Our order starts in the Received state. Possible triggers to change state are a payment confirmation (say from the credit card provider) or a customer cancellation (the customer declined to pay or was unable to pay). If payment is confirmed the Order goes into the Paid state, and the transition from Received to Paid results in sending an order confirmation email (an action taken because of the transition). If the customer cancels the payment, then the next state is Cancelled, and that is the terminal state for that particular order.</p><div class="table-wrapper"><table class="wide" id="pq6w9_69"><thead><tr class="ijRowHead" id="pq6w9_84"><th id="pq6w9_87"><p>Current State</p></th><th id="pq6w9_88"><p>Trigger</p></th><th id="pq6w9_89"><p>Next State</p></th><th id="pq6w9_90"><p>Action</p></th></tr></thead><tbody><tr id="pq6w9_85"><td id="pq6w9_91"><p>Received</p></td><td id="pq6w9_92"><p>Payment Confirmed</p></td><td id="pq6w9_93"><p>Paid</p></td><td id="pq6w9_94"><p>Send Order Confirmation Email</p></td></tr><tr id="pq6w9_86"><td id="pq6w9_95"><p>Received</p></td><td id="pq6w9_96"><p>Customer Cancelled</p></td><td id="pq6w9_97"><p>Cancelled</p></td><td id="pq6w9_98"><p>Send Customer Cancellation Confirmation Email</p></td></tr></tbody></table></div><p id="pq6w9_70">Once in the Paid state, the Order can be picked. Here we have a trigger event that occurs whenever we pick an item, but we don't want to transition to the Picked state until all the Items are picked. For example, if there were 3 items on the order, we don't want to enter the Picked state until we have had 3 Item Pick events. We model this using a <span class="control" id="pq6w9_99">Guard Condition</span>, which is a condition that is evaluated each time the event is received. The transition to the next state is only allowed when the Guard Condition is true. In this example we can receive more than one Item Picked event, but we cannot transition to the Picked State until all items are picked (the Guard Condition is shown in square brackets []). We stay in the same state until all the items are picked.</p><p id="pq6w9_71">We can still allow the customer to cancel the order at this stage, but the Warehouse staff can also cancel it. No retailer likes to cancel an order, but if it turns out there is insufficient stock, or it is damaged in some way, they may have to.</p><div class="table-wrapper"><table class="wide" id="pq6w9_72"><thead><tr class="ijRowHead" id="pq6w9_100"><th id="pq6w9_105"><p>Current State</p></th><th id="pq6w9_106"><p>Trigger</p></th><th id="pq6w9_107"><p>Next State</p></th><th id="pq6w9_108"><p>Action</p></th></tr></thead><tbody><tr id="pq6w9_101"><td id="pq6w9_109"><p>Paid</p></td><td id="pq6w9_110"><p>Item Picked [not all items picked]</p></td><td id="pq6w9_111"><p>n/a</p></td><td id="pq6w9_112"><p>n/a</p></td></tr><tr id="pq6w9_102"><td id="pq6w9_113"><p>Paid</p></td><td id="pq6w9_114"><p>Item Picked [all items picked]</p></td><td id="pq6w9_115"><p>Picked</p></td><td id="pq6w9_116"><p>n/a</p></td></tr><tr id="pq6w9_103"><td id="pq6w9_117"><p>Paid</p></td><td id="pq6w9_118"><p>Customer Cancelled</p></td><td id="pq6w9_119"><p>Cancelled</p></td><td id="pq6w9_120"><p>Send Customer Cancellation Confirmation Email, Refund Payment</p></td></tr><tr id="pq6w9_104"><td id="pq6w9_121"><p>Paid</p></td><td id="pq6w9_122"><p>Warehouse Cancelled</p></td><td id="pq6w9_123"><p>Cancelled</p></td><td id="pq6w9_124"><p>Send Apology Email, Refund Payment</p></td></tr></tbody></table></div><p id="pq6w9_73">Although both kinds of cancellations result in the order being in the Cancelled state, they result in different activities. If the customer cancels the order, we want to send them a simple confirmation email, but if the warehouse cancels the order, we need to send a different email with an apology. We can use the combination of Current State, Event and Next State to determine what action(s) we want to perform.</p><p id="pq6w9_74">The next transition happens when the Order is Packed. Again, the Warehouse could have to cancel the order (perhaps the packer discovers the goods are damaged), again we need to send an apology email.</p><div class="table-wrapper"><table class="wide" id="pq6w9_75"><thead><tr class="ijRowHead" id="pq6w9_125"><th id="pq6w9_128"><p>Current State</p></th><th id="pq6w9_129"><p>Trigger</p></th><th id="pq6w9_130"><p>Next State</p></th><th id="pq6w9_131"><p>Action</p></th></tr></thead><tbody><tr id="pq6w9_126"><td id="pq6w9_132"><p>Picked</p></td><td id="pq6w9_133"><p>Packing Complete</p></td><td id="pq6w9_134"><p>Packed</p></td><td id="pq6w9_135"><p>Notify Courier</p></td></tr><tr id="pq6w9_127"><td id="pq6w9_136"><p>Picked</p></td><td id="pq6w9_137"><p>Warehouse Cancelled</p></td><td id="pq6w9_138"><p>Cancelled</p></td><td id="pq6w9_139"><p>Send Apology Email, Refund Payment</p></td></tr></tbody></table></div><p id="pq6w9_76">The final state transition occurs when we hand the packed order over to the courier or parcel delivery company. We are not going to cancel the order now, so this is the only transition.</p><div class="table-wrapper"><table class="wide" id="pq6w9_77"><thead><tr class="ijRowHead" id="pq6w9_140"><th id="pq6w9_142"><p>Current State</p></th><th id="pq6w9_143"><p>Trigger</p></th><th id="pq6w9_144"><p>Next State</p></th><th id="pq6w9_145"><p>Action</p></th></tr></thead><tbody><tr id="pq6w9_141"><td id="pq6w9_146"><p>Packed</p></td><td id="pq6w9_147"><p>Courier Pickup</p></td><td id="pq6w9_148"><p>Dispatched</p></td><td id="pq6w9_149"><p>Send Dispatch Confirmation Email</p></td></tr></tbody></table></div><p id="pq6w9_78">We also need to manage customer returns. If the customer returns the order, the order transitions from Dispatched to Returned, triggering another customer email.</p><div class="table-wrapper"><table class="wide" id="pq6w9_79"><thead><tr class="ijRowHead" id="pq6w9_150"><th id="pq6w9_152"><p>Current State</p></th><th id="pq6w9_153"><p>Trigger</p></th><th id="pq6w9_154"><p>Next State</p></th><th id="pq6w9_155"><p>Action</p></th></tr></thead><tbody><tr id="pq6w9_151"><td id="pq6w9_156"><p>Dispatched</p></td><td id="pq6w9_157"><p>Customer Return</p></td><td id="pq6w9_158"><p>Returned</p></td><td id="pq6w9_159"><p>Send Return Confirmation Email, Refund Payment</p></td></tr></tbody></table></div><p id="pq6w9_80">This is an example set of states and transitions which ignores much of the actual complexity of real shipping (dispatching part orders, returning some items), but shows how we can use state transition tables to model complex scenarios using a set of states and a set of events. The State Transition Table shows what happens when an event arrives and the state machine is in a particular state.</p><p id="pq6w9_81">Returned and Cancelled are the <span class="control" id="pq6w9_160">terminal states</span>, in both cases there can be no further transitions from either of these states, and all events received in those states are either ignored or treated as an error.</p><aside class="prompt" data-type="tip" data-title="" id="pq6w9_82"><p id="pq6w9_161">⚠ In real world implementations, there is often a requirement to undo legitimate user mistakes, so often <span class="control" id="pq6w9_162">terminal states</span> do accept an Undo event and a transition out of the state, but this is only to correct user error rather than being part of a business process.</p></aside></section><section class="chapter"><h2 id="coding-a-simple-state-machine" data-toc="coding-a-simple-state-machine">Coding a Simple State Machine</h2><p id="pq6w9_163">This is a very simple example of a state machine with 3 states (Red, Blue and Green) and one event (Forward). The requirement is for the states to cycle Red, Blue, Green, Red etc. when the machine receives a <code class="code" id="pq6w9_190">Forward</code> event</p><div class="table-wrapper"><table class="wide" id="pq6w9_164"><thead><tr class="ijRowHead" id="pq6w9_191"><th id="pq6w9_195"><p>Current State</p></th><th id="pq6w9_196"><p>Event</p></th><th id="pq6w9_197"><p>Next State</p></th><th id="pq6w9_198"><p>Action</p></th></tr></thead><tbody><tr id="pq6w9_192"><td id="pq6w9_199"><p>Red</p></td><td id="pq6w9_200"><p>Forward</p></td><td id="pq6w9_201"><p>Blue</p></td><td id="pq6w9_202"><p>Print &quot;Red -&gt; Blue&quot;</p></td></tr><tr id="pq6w9_193"><td id="pq6w9_203"><p>Blue</p></td><td id="pq6w9_204"><p>Forward</p></td><td id="pq6w9_205"><p>Green</p></td><td id="pq6w9_206"><p>Print &quot;Blue -&gt; Green&quot;</p></td></tr><tr id="pq6w9_194"><td id="pq6w9_207"><p>Green</p></td><td id="pq6w9_208"><p>Forward</p></td><td id="pq6w9_209"><p>Red</p></td><td id="pq6w9_210"><p>Print &quot;Green -&gt; Red&quot;</p></td></tr></tbody></table></div><p id="pq6w9_165">Start with an enum for the states.</p><div class="code-block" data-lang="java">
+enum State {
+    Red,
+    Blue,
+    Green
+}
+</div><p id="pq6w9_167">Implement a class with a forward() method that uses a switch statement to process the event based on the current state. The machine starts with currentState = Red.</p><div class="code-block" data-lang="java">
+class SingleEventStateMachine {
+
+    private State currentState = State.Red; //Start in Red state as the initial state
+
+    void forward() {
+        switch (currentState) {
+            case State.Red: {
+                System.out.printf(&quot;forward %s -&gt; %s%n&quot;, State.Red, State.Blue);
+                currentState = State.Blue;
+            }
+            break;
+            case Blue: {
+                System.out.printf(&quot;forward %s -&gt; %s%n&quot;, State.Blue, State.Green);
+                currentState = State.Green;
+            }
+            break;
+            case Green: {
+                System.out.printf(&quot;forward %s -&gt; %s%n&quot;, State.Green, State.Red);
+                currentState = State.Red;
+            }
+            break;
+            default: {
+                //throw exception
+            }
+            break;
+        }
+    }
+}
+</div><p id="pq6w9_169">This example produces the output</p><div class="code-block" data-lang="java">
+SingleEventStateMachine singleEventStateMachine = new SingleEventStateMachine();
+singleEventStateMachine.forward();
+singleEventStateMachine.forward();
+singleEventStateMachine.forward();
+singleEventStateMachine.forward();
+
+// Outputs
+// forward Red -&gt; Blue
+// forward Blue -&gt; Green
+// forward Green -&gt; Red
+// forward Red -&gt; Blue
+</div><p id="pq6w9_171">The UML defines a graphical notation for State Machines (Object Management Group 2017 Ch 14) but here we are using a simplified version.</p><svg aria-roledescription="stateDiagram" role="graphics-document document" viewBox="0 0 446.625 115" style="max-width: 446.625px;" class="statediagram" xmlns="http://www.w3.org/2000/svg" width="100%" id="mermaid"><g><defs><marker orient="auto" markerUnits="userSpaceOnUse" markerHeight="14" markerWidth="20" refY="7" refX="19" id="mermaid_stateDiagram-barbEnd"><path d="M 19,7 L9,13 L14,7 L9,1 Z"></path></marker></defs><g class="root"><g class="clusters"></g><g class="edgePaths"><path marker-end="url(#mermaid_stateDiagram-barbEnd)" style=";fill:none" class="edge-thickness-normal edge-pattern-solid transition" id="edge0" d="M22,61.5L26.167,61.5C30.333,61.5,38.667,61.5,44.917,61.5C51.167,61.5,55.333,61.5,59.5,61.5C63.667,61.5,67.833,61.5,69.917,61.5L72,61.5"></path><path marker-end="url(#mermaid_stateDiagram-barbEnd)" style=";fill:none" class="edge-thickness-normal edge-pattern-solid transition" id="edge1" d="M117.438,51.282L126.065,47.402C134.693,43.521,151.948,35.761,165.115,31.88C178.281,28,187.359,28,196.438,28C205.516,28,214.594,28,219.133,28L223.672,28"></path><path marker-end="url(#mermaid_stateDiagram-barbEnd)" style=";fill:none" class="edge-thickness-normal edge-pattern-solid transition" id="edge2" d="M271.797,28L280.875,28C289.953,28,308.109,28,321.501,29.761C334.893,31.522,343.521,35.044,352.148,38.566C360.776,42.088,369.404,45.61,373.717,47.371L378.031,49.132"></path><path marker-end="url(#mermaid_stateDiagram-barbEnd)" style=";fill:none" class="edge-thickness-normal edge-pattern-solid transition" id="edge3" d="M378.031,73.868L369.404,77.39C360.776,80.912,343.521,87.956,321.805,91.478C300.089,95,273.911,95,247.734,95C221.557,95,195.38,95,177.978,93.06C160.576,91.12,151.948,87.239,143.32,83.359C134.693,79.479,126.065,75.598,121.751,73.658L117.438,71.718"></path></g><g class="edgeLabels"><g class="edgeLabel"><g transform="translate(0, 0)" class="label"><foreignObject height="0" width="0"><div style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;" class="labelBkg" xmlns="http://www.w3.org/1999/xhtml"><span class="edgeLabel"></span></div></foreignObject></g></g><g transform="translate(169.203125, 28)" class="edgeLabel"><g transform="translate(-26.765625, -12)" class="label"><foreignObject height="24" width="53.53125"><div style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;" class="labelBkg" xmlns="http://www.w3.org/1999/xhtml"><span class="edgeLabel"><p>forward</p></span></div></foreignObject></g></g><g transform="translate(326.265625, 28)" class="edgeLabel"><g transform="translate(-26.765625, -12)" class="label"><foreignObject height="24" width="53.53125"><div style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;" class="labelBkg" xmlns="http://www.w3.org/1999/xhtml"><span class="edgeLabel"><p>forward</p></span></div></foreignObject></g></g><g transform="translate(247.734375, 95)" class="edgeLabel"><g transform="translate(-26.765625, -12)" class="label"><foreignObject height="24" width="53.53125"><div style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;" class="labelBkg" xmlns="http://www.w3.org/1999/xhtml"><span class="edgeLabel"><p>forward</p></span></div></foreignObject></g></g></g><g class="nodes"><g transform="translate(15, 61.5)" id="state-root_start-0" class="node default"><circle height="14" width="14" r="7" class="state-start"></circle></g><g transform="translate(94.71875, 61.5)" id="state-Red-3" class="node  statediagram-state"><rect height="40" width="45.4375" y="-20" x="-22.71875" ry="5" data-et="node" data-id="abc" rx="5" style="" class="basic label-container"></rect><g transform="translate(-14.71875, -12)" style="" class="label"><rect></rect><foreignObject height="24" width="29.4375"><div style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;" xmlns="http://www.w3.org/1999/xhtml"><span class="nodeLabel"><p>Red</p></span></div></foreignObject></g></g><g transform="translate(247.734375, 28)" id="state-Blue-2" class="node  statediagram-state"><rect height="40" width="48.125" y="-20" x="-24.0625" ry="5" data-et="node" data-id="abc" rx="5" style="" class="basic label-container"></rect><g transform="translate(-16.0625, -12)" style="" class="label"><rect></rect><foreignObject height="24" width="32.125"><div style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;" xmlns="http://www.w3.org/1999/xhtml"><span class="nodeLabel"><p>Blue</p></span></div></foreignObject></g></g><g transform="translate(408.328125, 61.5)" id="state-Green-3" class="node  statediagram-state"><rect height="40" width="60.59375" y="-20" x="-30.296875" ry="5" data-et="node" data-id="abc" rx="5" style="" class="basic label-container"></rect><g transform="translate(-22.296875, -12)" style="" class="label"><rect></rect><foreignObject height="24" width="44.59375"><div style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;" xmlns="http://www.w3.org/1999/xhtml"><span class="nodeLabel"><p>Green</p></span></div></foreignObject></g></g></g></g></g></svg><p id="pq6w9_173">The boxes represent the individual states, the arrows are the transitions between the <span class="control" id="pq6w9_211">Source</span> state and the <span class="control" id="pq6w9_212">Target</span> state and the label on the transition is the name of the Event that triggered the transition.</p><p id="pq6w9_174">The solid filled dot is called the <span class="control" id="pq6w9_213">Initial State</span> and indicates the start of the State Machine and shows the path the first 'real' state, and shows the state machine is initially in the Red state.</p><p id="pq6w9_175">Now add another event called reverse that transitions the states in the reverse order</p><div class="table-wrapper"><table class="wide" id="pq6w9_176"><thead><tr class="ijRowHead" id="pq6w9_214"><th id="pq6w9_221"><p>Current State</p></th><th id="pq6w9_222"><p>Event</p></th><th id="pq6w9_223"><p>Next State</p></th><th id="pq6w9_224"><p>Action</p></th></tr></thead><tbody><tr id="pq6w9_215"><td id="pq6w9_225"><p>Red</p></td><td id="pq6w9_226"><p>Forward</p></td><td id="pq6w9_227"><p>Blue</p></td><td id="pq6w9_228"><p>Print &quot;Red -&gt; Blue&quot;</p></td></tr><tr id="pq6w9_216"><td id="pq6w9_229"><p>Red</p></td><td id="pq6w9_230"><p>Reverse</p></td><td id="pq6w9_231"><p>Green</p></td><td id="pq6w9_232"><p>Print &quot;Red -&gt; Green&quot;</p></td></tr><tr id="pq6w9_217"><td id="pq6w9_233"><p>Blue</p></td><td id="pq6w9_234"><p>Forward</p></td><td id="pq6w9_235"><p>Green</p></td><td id="pq6w9_236"><p>Print &quot;Blue -&gt; Green&quot;</p></td></tr><tr id="pq6w9_218"><td id="pq6w9_237"><p>Blue</p></td><td id="pq6w9_238"><p>Reverse</p></td><td id="pq6w9_239"><p>Red</p></td><td id="pq6w9_240"><p>Print &quot;Blue -&gt; Red&quot;</p></td></tr><tr id="pq6w9_219"><td id="pq6w9_241"><p>Green</p></td><td id="pq6w9_242"><p>Forward</p></td><td id="pq6w9_243"><p>Red</p></td><td id="pq6w9_244"><p>Print &quot;Green -&gt; Red&quot;</p></td></tr><tr id="pq6w9_220"><td id="pq6w9_245"><p>Green</p></td><td id="pq6w9_246"><p>Reverse</p></td><td id="pq6w9_247"><p>Blue</p></td><td id="pq6w9_248"><p>Print &quot;Green -&gt; Blue&quot;</p></td></tr></tbody></table></div><svg aria-roledescription="stateDiagram" role="graphics-document document" viewBox="0 0 446.625 215" style="max-width: 446.625px;" class="statediagram" xmlns="http://www.w3.org/2000/svg" width="100%" id="mermaid"><g><defs><marker orient="auto" markerUnits="userSpaceOnUse" markerHeight="14" markerWidth="20" refY="7" refX="19" id="mermaid_stateDiagram-barbEnd"><path d="M 19,7 L9,13 L14,7 L9,1 Z"></path></marker></defs><g class="root"><g class="clusters"></g><g class="edgePaths"><path marker-end="url(#mermaid_stateDiagram-barbEnd)" style=";fill:none" class="edge-thickness-normal edge-pattern-solid transition" id="edge0" d="M22,91.5L26.167,91.5C30.333,91.5,38.667,91.5,44.917,91.5C51.167,91.5,55.333,91.5,59.5,91.5C63.667,91.5,67.833,91.5,69.917,91.5L72,91.5"></path><path marker-end="url(#mermaid_stateDiagram-barbEnd)" style=";fill:none" class="edge-thickness-normal edge-pattern-solid transition" id="edge1" d="M117.438,84.79L126.065,82.241C134.693,79.693,151.948,74.597,165.115,73.32C178.281,72.043,187.359,74.586,196.438,77.13C205.516,79.673,214.594,82.216,219.133,83.487L223.672,84.759"></path><path marker-end="url(#mermaid_stateDiagram-barbEnd)" style=";fill:none" class="edge-thickness-normal edge-pattern-solid transition" id="edge2" d="M115.554,71.5L124.495,62.917C133.437,54.333,151.32,37.167,173.35,28.583C195.38,20,221.557,20,247.734,20C273.911,20,300.089,20,318.713,27.083C337.338,34.167,348.409,48.333,359.481,62.5C370.553,76.667,381.625,90.833,387.161,97.917L392.697,105"></path><path marker-end="url(#mermaid_stateDiagram-barbEnd)" style=";fill:none" class="edge-thickness-normal edge-pattern-solid transition" id="edge3" d="M271.797,91.5L280.875,91.5C289.953,91.5,308.109,91.5,321.501,93.261C334.893,95.022,343.521,98.544,352.148,102.066C360.776,105.588,369.404,109.11,373.717,110.871L378.031,112.632"></path><path marker-end="url(#mermaid_stateDiagram-barbEnd)" style=";fill:none" class="edge-thickness-normal edge-pattern-solid transition" id="edge4" d="M223.672,98.241L214.594,100.784C205.516,103.327,187.359,108.414,173.967,109.683C160.576,110.952,151.948,108.403,143.32,105.855C134.693,103.307,126.065,100.759,121.751,99.484L117.438,98.21"></path><path marker-end="url(#mermaid_stateDiagram-barbEnd)" style=";fill:none" class="edge-thickness-normal edge-pattern-solid transition" id="edge5" d="M378.031,139.029L369.404,143.024C360.776,147.02,343.521,155.01,321.805,159.005C300.089,163,273.911,163,247.734,163C221.557,163,195.38,163,177.821,158.708C160.262,154.417,151.32,145.833,142.378,137.25C133.437,128.667,124.495,120.083,120.024,115.792L115.554,111.5"></path><path marker-end="url(#mermaid_stateDiagram-barbEnd)" style=";fill:none" class="edge-thickness-normal edge-pattern-solid transition" id="edge6" d="M384.882,145L375.112,153.333C365.343,161.667,345.804,178.333,330.755,179.708C315.706,181.083,305.147,167.167,294.588,153.25C284.028,139.333,273.469,125.417,268.189,118.458L262.909,111.5"></path></g><g class="edgeLabels"><g class="edgeLabel"><g transform="translate(0, 0)" class="label"><foreignObject height="0" width="0"><div style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;" class="labelBkg" xmlns="http://www.w3.org/1999/xhtml"><span class="edgeLabel"></span></div></foreignObject></g></g><g transform="translate(169.203125, 69.5)" class="edgeLabel"><g transform="translate(-26.765625, -12)" class="label"><foreignObject height="24" width="53.53125"><div style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;" class="labelBkg" xmlns="http://www.w3.org/1999/xhtml"><span class="edgeLabel"><p>forward</p></span></div></foreignObject></g></g><g transform="translate(247.734375, 20)" class="edgeLabel"><g transform="translate(-26.765625, -12)" class="label"><foreignObject height="24" width="53.53125"><div style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;" class="labelBkg" xmlns="http://www.w3.org/1999/xhtml"><span class="edgeLabel"><p>reverse</p></span></div></foreignObject></g></g><g transform="translate(326.265625, 91.5)" class="edgeLabel"><g transform="translate(-26.765625, -12)" class="label"><foreignObject height="24" width="53.53125"><div style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;" class="labelBkg" xmlns="http://www.w3.org/1999/xhtml"><span class="edgeLabel"><p>forward</p></span></div></foreignObject></g></g><g transform="translate(169.203125, 113.5)" class="edgeLabel"><g transform="translate(-26.765625, -12)" class="label"><foreignObject height="24" width="53.53125"><div style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;" class="labelBkg" xmlns="http://www.w3.org/1999/xhtml"><span class="edgeLabel"><p>reverse</p></span></div></foreignObject></g></g><g transform="translate(247.734375, 163)" class="edgeLabel"><g transform="translate(-26.765625, -12)" class="label"><foreignObject height="24" width="53.53125"><div style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;" class="labelBkg" xmlns="http://www.w3.org/1999/xhtml"><span class="edgeLabel"><p>forward</p></span></div></foreignObject></g></g><g transform="translate(326.265625, 195)" class="edgeLabel"><g transform="translate(-26.765625, -12)" class="label"><foreignObject height="24" width="53.53125"><div style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;" class="labelBkg" xmlns="http://www.w3.org/1999/xhtml"><span class="edgeLabel"><p>reverse</p></span></div></foreignObject></g></g></g><g class="nodes"><g transform="translate(15, 91.5)" id="state-root_start-0" class="node default"><circle height="14" width="14" r="7" class="state-start"></circle></g><g transform="translate(94.71875, 91.5)" id="state-Red-5" class="node  statediagram-state"><rect height="40" width="45.4375" y="-20" x="-22.71875" ry="5" data-et="node" data-id="abc" rx="5" style="" class="basic label-container"></rect><g transform="translate(-14.71875, -12)" style="" class="label"><rect></rect><foreignObject height="24" width="29.4375"><div style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;" xmlns="http://www.w3.org/1999/xhtml"><span class="nodeLabel"><p>Red</p></span></div></foreignObject></g></g><g transform="translate(247.734375, 91.5)" id="state-Blue-6" class="node  statediagram-state"><rect height="40" width="48.125" y="-20" x="-24.0625" ry="5" data-et="node" data-id="abc" rx="5" style="" class="basic label-container"></rect><g transform="translate(-16.0625, -12)" style="" class="label"><rect></rect><foreignObject height="24" width="32.125"><div style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;" xmlns="http://www.w3.org/1999/xhtml"><span class="nodeLabel"><p>Blue</p></span></div></foreignObject></g></g><g transform="translate(408.328125, 125)" id="state-Green-6" class="node  statediagram-state"><rect height="40" width="60.59375" y="-20" x="-30.296875" ry="5" data-et="node" data-id="abc" rx="5" style="" class="basic label-container"></rect><g transform="translate(-22.296875, -12)" style="" class="label"><rect></rect><foreignObject height="24" width="44.59375"><div style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;" xmlns="http://www.w3.org/1999/xhtml"><span class="nodeLabel"><p>Green</p></span></div></foreignObject></g></g></g></g></g></svg><p id="pq6w9_178">The code</p><div class="code-block" data-lang="java">
+class MultipleEventStateMachine {
+
+    private State currentState = State.Red; //Start in Red state
+
+    void forward() {
+        switch (currentState) {
+            case State.Red: {
+                System.out.printf(&quot;forward %s -&gt; %s%n&quot;, State.Red, State.Blue);
+                currentState = State.Blue;
+            }
+            break;
+            case Blue: {
+                System.out.printf(&quot;forward %s -&gt; %s%n&quot;, State.Blue, State.Green);
+                currentState = State.Green;
+            }
+            break;
+            case Green: {
+                System.out.printf(&quot;forward %s -&gt; %s%n&quot;, State.Green, State.Red);
+                currentState = State.Red;
+            }
+            break;
+            default: {
+                //throw exception
+            }
+            break;
+        }
+    }
+
+    void reverse() {
+        switch (currentState) {
+            case State.Red: {
+                System.out.printf(&quot;reverse %s -&gt; %s%n&quot;, State.Red, State.Green);
+                currentState = State.Green;
+            }
+            break;
+            case Blue: {
+                System.out.printf(&quot;reverse %s -&gt; %s%n&quot;, State.Blue, State.Red);
+                currentState = State.Red;
+            }
+            break;
+            case Green: {
+                System.out.printf(&quot;reverse %s -&gt; %s%n&quot;, State.Green, State.Blue);
+                currentState = State.Blue;
+            }
+            break;
+            default: {
+                //throw exception
+            }
+            break;
+        }
+    }
+}
+MultipleEventStateMachine multipleEventStateMachine = new MultipleEventStateMachine();
+multipleEventStateMachine.forward();
+multipleEventStateMachine.forward();
+multipleEventStateMachine.forward();
+multipleEventStateMachine.reverse();
+multipleEventStateMachine.reverse();
+multipleEventStateMachine.reverse();
+
+// Outputs
+// forward Red -&gt; Blue
+// forward Blue -&gt; Green
+// forward Green -&gt; Red
+// reverse Red -&gt; Green
+// reverse Green -&gt; Blue
+// reverse Blue -&gt; Red
+</div><p id="pq6w9_180">The problem with writing state machine code in this procedural way is that there is a combinatorial explosion between the events and the states - there will be switch statement for each event, and each switch statement will need as many branches as there are states. Adding a new event requires adding a new switch statements, adding a new state requires extending every switch statement by adding a new branch. The same issues apply if you replace switch with if. You should recognise that long conditional statements are not a good solution for extensibility or maintainability</p><p id="pq6w9_181">A better way of coding this is to use the <span class="control" id="pq6w9_249">State Pattern</span>. The pattern uses a class for each state. Each class can then be varied independently to handle the requirements of each state.</p><p id="pq6w9_182">First define an <code class="code" id="pq6w9_250">interface</code> called <code class="code" id="pq6w9_251">State</code> that will be implemented by all the state classes and an interface called Context to be implemented by the State Machine.</p><div class="code-block" data-lang="java">
+interface State {
+    String getName();
+    void forward(Context context);
+    void reverse(Context context);
+}
+
+interface Context {
+    void changeState(State nextState);
+}
+</div><p id="pq6w9_184">Each state is represented by a class which implements the <code class="code" id="pq6w9_252">State</code> interface. Each event has its own method on the interface.</p><p id="pq6w9_185">Note the override of the Java Object.toString() method to provide the name of a state.</p><div class="code-block" data-lang="java">
+class Red implements State {
+    private final static String NAME = &quot;Red&quot;;
+
+    @Override
+    public String toString() {
+        return NAME;
+    }
+
+    @Override
+    public void forward(Context context) {
+        State next = new Blue();
+        System.out.printf(&quot;forward %s -&gt; %s%n&quot;, this, next);
+        context.changeState(next);
+    }
+
+    @Override
+    public void reverse(Context context) {
+        State previous = new Green();
+        System.out.printf(&quot;reverse %s -&gt; %s%n&quot;, this, previous);
+        context.changeState(previous);
+    }
+}
+
+class Blue implements State {
+
+    private static String NAME = &quot;Blue&quot;;
+
+    @Override
+    public String toString() {
+        return NAME;
+    }
+
+    @Override
+    public void forward(Context context) {
+        State next = new Green();
+        System.out.printf(&quot;forward %s -&gt; %s%n&quot;, this, next);
+        context.changeState(next);
+    }
+
+    @Override
+    public void reverse(Context context) {
+        State previous = new Red();
+        System.out.printf(&quot;reverse %s -&gt; %s%n&quot;, this, previous);
+        context.changeState(previous);
+    }
+}
+
+class Green implements State {
+
+    private final static String NAME = &quot;Green&quot;;
+
+    @Override
+    public String toString() {
+        return NAME;
+    }
+
+    @Override
+    public void forward(Context context) {
+        State next = new Red();
+        System.out.printf(&quot;forward %s -&gt; %s%n&quot;, this, next);
+        context.changeState(next);
+    }
+
+    @Override
+    public void reverse(Context context) {
+        State previous = new Blue();
+        System.out.printf(&quot;reverse %s -&gt; %s%n&quot;, this, previous);
+        context.changeState(previous);
+    }
+}
+</div><p id="pq6w9_187">The StateMachine class holds a reference to an instance of one of the state objects in the <code class="code" id="pq6w9_253">currentState</code> variable. Any Statesobject can then call the changeState method to replace currentState.</p><div class="code-block" data-lang="java">
+class MultipleEventStateMachine implements Context {
+    private State currentState;
+
+    MultipleEventStateMachine()
+    {
+        currentState = new Red(); //initial state
+    }
+
+    @Override
+    public void changeState(State nextState)
+    {
+        currentState = nextState;
+    }
+
+    public void forward() {
+        currentState.forward(this);
+    }
+
+    public void reverse() {
+        currentState.reverse(this);
+    }
+}
+
+MultipleEventStateMachine multipleEventStateMachine = new MultipleEventStateMachine();
+multipleEventStateMachine.forward();
+multipleEventStateMachine.forward();
+multipleEventStateMachine.forward();
+multipleEventStateMachine.reverse();
+multipleEventStateMachine.reverse();
+multipleEventStateMachine.reverse();
+
+// Outputs
+// forward Red -&gt; Blue
+// forward Blue -&gt; Green
+// forward Green -&gt; Red
+// reverse Red -&gt; Green
+// reverse Green -&gt; Blue
+// reverse Blue -&gt; Red
+</div><p id="pq6w9_189">Adding a new state sinvolves the creation of an entirely new class, adding a new Event requires adding one additional method to each class. Each state class is independently testable.</p></section><section class="chapter"><h2 id="extended-state-machines" data-toc="extended-state-machines">Extended State Machines</h2><p id="pq6w9_254">An Extended State Machine (ESM) is an extension of a basic state machine, adding the ability to store and manipulate data by adding data variables. A traditional state machine represents everything as states, whereas an ESM can use a mixture of states and data to simplify design and manage complex system behavior more effectively.</p><p id="pq6w9_255">For example, take a state machine that represents a countdown timer that counts down from 3. The tick causes a transition between states until it reaches the triggered state, where any subsequent tick events are ignored (we remain in the triggered state). A reset event restarts the process.</p><svg aria-roledescription="stateDiagram" role="graphics-document document" viewBox="0 0 408.84375 222.5500030517578" style="max-width: 408.84375px;" class="statediagram" xmlns="http://www.w3.org/2000/svg" width="100%" id="mermaid"><g><defs><marker orient="auto" markerUnits="userSpaceOnUse" markerHeight="14" markerWidth="20" refY="7" refX="19" id="mermaid_stateDiagram-barbEnd"><path d="M 19,7 L9,13 L14,7 L9,1 Z"></path></marker></defs><g class="root"><g class="clusters"></g><g class="edgePaths"><path marker-end="url(#mermaid_stateDiagram-barbEnd)" style=";fill:none" class="edge-thickness-normal edge-pattern-solid transition" id="edge0" d="M155.973,136.215L168.979,133.687C181.985,131.16,207.996,126.105,224.573,124.61C241.15,123.116,248.292,125.181,255.434,127.247C262.576,129.312,269.717,131.378,273.288,132.411L276.859,133.444"></path><path marker-end="url(#mermaid_stateDiagram-barbEnd)" style=";fill:none" class="edge-thickness-normal edge-pattern-solid transition" id="edge1" d="M301.797,137.05L307.973,137.05C314.148,137.05,326.5,137.05,335.764,139.451C345.027,141.851,351.203,146.652,357.379,151.453C363.555,156.254,369.73,161.056,372.818,163.456L375.906,165.857"></path><path marker-end="url(#mermaid_stateDiagram-barbEnd)" style=";fill:none" class="edge-thickness-normal edge-pattern-solid transition" id="edge2" d="M375.906,182.348L369.73,185.715C363.555,189.082,351.203,195.816,336.773,199.183C322.344,202.55,305.836,202.55,288.362,202.55C270.888,202.55,252.448,202.55,229.077,202.55C205.706,202.55,177.404,202.55,150.068,202.55C122.732,202.55,96.362,202.55,80.089,198.466C63.816,194.382,57.641,186.214,51.465,178.046C45.289,169.877,39.113,161.709,36.025,157.625L32.938,153.541"></path><path marker-end="url(#mermaid_stateDiagram-barbEnd)" style=";fill:none" class="edge-thickness-normal edge-pattern-solid transition" id="edge3" d="M32.548,117.05L38.788,106.717C45.029,96.383,57.511,75.717,66.839,65.383C76.168,55.05,82.344,55.05,88.52,55.05C94.695,55.05,100.871,55.05,103.959,55.05L107.047,55.05"></path><path style=";fill:none" class="edge-thickness-normal edge-pattern-solid transition" id="Triggered-cyclic-special-1" d="M191.156,37.689L198.298,34.741C205.44,31.793,219.724,25.896,231.472,22.948C243.22,20,252.431,20,261.643,20C270.855,20,280.066,20,284.672,20L289.278,20"></path><path style=";fill:none" class="edge-thickness-normal edge-pattern-solid transition" id="Triggered-cyclic-special-mid" d="M289.378,20L297.624,20C305.869,20,322.36,20,334.729,21.374C347.097,22.747,355.343,25.494,363.588,28.242C371.834,30.989,380.079,33.736,384.202,35.11L388.325,36.483"></path><path marker-end="url(#mermaid_stateDiagram-barbEnd)" style=";fill:none" class="edge-thickness-normal edge-pattern-solid transition" id="Triggered-cyclic-special-2" d="M388.325,36.519L380.079,39.607C371.834,42.696,355.343,48.873,338.843,51.961C322.344,55.05,305.836,55.05,288.362,55.05C270.888,55.05,252.448,55.05,239.657,55.05C226.866,55.05,219.724,55.05,212.582,55.05C205.44,55.05,198.298,55.05,194.727,55.05L191.156,55.05"></path><path marker-end="url(#mermaid_stateDiagram-barbEnd)" style=";fill:none" class="edge-thickness-normal edge-pattern-solid transition" id="edge5" d="M166.429,75.05L177.692,88.05C188.956,101.05,211.482,127.05,226.316,139.017C241.15,150.984,248.292,148.919,255.434,146.853C262.576,144.788,269.717,142.722,273.288,141.689L276.859,140.656"></path></g><g class="edgeLabels"><g class="edgeLabel"><g transform="translate(0, 0)" class="label"><foreignObject height="0" width="0"><div style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;" class="labelBkg" xmlns="http://www.w3.org/1999/xhtml"><span class="edgeLabel"></span></div></foreignObject></g></g><g transform="translate(338.8515625, 137.05000000074506)" class="edgeLabel"><g transform="translate(-12.0546875, -12)" class="label"><foreignObject height="24" width="24.109375"><div style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;" class="labelBkg" xmlns="http://www.w3.org/1999/xhtml"><span class="edgeLabel"><p>tick</p></span></div></foreignObject></g></g><g transform="translate(234.0078125, 202.55000000074506)" class="edgeLabel"><g transform="translate(-12.0546875, -12)" class="label"><foreignObject height="24" width="24.109375"><div style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;" class="labelBkg" xmlns="http://www.w3.org/1999/xhtml"><span class="edgeLabel"><p>tick</p></span></div></foreignObject></g></g><g transform="translate(69.9921875, 55.05000000074506)" class="edgeLabel"><g transform="translate(-12.0546875, -12)" class="label"><foreignObject height="24" width="24.109375"><div style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;" class="labelBkg" xmlns="http://www.w3.org/1999/xhtml"><span class="edgeLabel"><p>tick</p></span></div></foreignObject></g></g><g class="edgeLabel"><g transform="translate(0, 0)" class="label"><foreignObject height="0" width="0"><div style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;" class="labelBkg" xmlns="http://www.w3.org/1999/xhtml"><span class="edgeLabel"></span></div></foreignObject></g></g><g transform="translate(338.8515625, 20)" class="edgeLabel"><g transform="translate(-12.0546875, -12)" class="label"><foreignObject height="24" width="24.109375"><div style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;" class="labelBkg" xmlns="http://www.w3.org/1999/xhtml"><span class="edgeLabel"><p>tick</p></span></div></foreignObject></g></g><g class="edgeLabel"><g transform="translate(0, 0)" class="label"><foreignObject height="0" width="0"><div style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;" class="labelBkg" xmlns="http://www.w3.org/1999/xhtml"><span class="edgeLabel"></span></div></foreignObject></g></g><g transform="translate(234.0078125, 153.05000000074506)" class="edgeLabel"><g transform="translate(-17.8515625, -12)" class="label"><foreignObject height="24" width="35.703125"><div style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;" class="labelBkg" xmlns="http://www.w3.org/1999/xhtml"><span class="edgeLabel"><p>reset</p></span></div></foreignObject></g></g></g><g class="nodes"><g transform="translate(20.46875, 137.05000000074506)" id="state-1-3" class="node  statediagram-state"><rect height="40" width="24.9375" y="-20" x="-12.46875" ry="5" data-et="node" data-id="abc" rx="5" style="" class="basic label-container"></rect><g transform="translate(-4.46875, -12)" style="" class="label"><rect></rect><foreignObject height="24" width="8.9375"><div style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;" xmlns="http://www.w3.org/1999/xhtml"><span class="nodeLabel"><p>1</p></span></div></foreignObject></g></g><g transform="translate(388.375, 175.55000000074506)" id="state-2-2" class="node  statediagram-state"><rect height="40" width="24.9375" y="-20" x="-12.46875" ry="5" data-et="node" data-id="abc" rx="5" style="" class="basic label-container"></rect><g transform="translate(-4.46875, -12)" style="" class="label"><rect></rect><foreignObject height="24" width="8.9375"><div style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;" xmlns="http://www.w3.org/1999/xhtml"><span class="nodeLabel"><p>2</p></span></div></foreignObject></g></g><g transform="translate(289.328125, 137.05000000074506)" id="state-3-5" class="node  statediagram-state"><rect height="40" width="24.9375" y="-20" x="-12.46875" ry="5" data-et="node" data-id="abc" rx="5" style="" class="basic label-container"></rect><g transform="translate(-4.46875, -12)" style="" class="label"><rect></rect><foreignObject height="24" width="8.9375"><div style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;" xmlns="http://www.w3.org/1999/xhtml"><span class="nodeLabel"><p>3</p></span></div></foreignObject></g></g><g transform="translate(149.1015625, 137.55000000074506)" id="state-root_start-0" class="node default"><circle height="14" width="14" r="7" class="state-start"></circle></g><g transform="translate(149.1015625, 55.05000000074506)" id="state-Triggered-5" class="node  statediagram-state"><rect height="40" width="84.109375" y="-20" x="-42.0546875" ry="5" data-et="node" data-id="abc" rx="5" style="" class="basic label-container"></rect><g transform="translate(-34.0546875, -12)" style="" class="label"><rect></rect><foreignObject height="24" width="68.109375"><div style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;" xmlns="http://www.w3.org/1999/xhtml"><span class="nodeLabel"><p>Triggered</p></span></div></foreignObject></g></g><g transform="translate(289.328125, 20)" id="Triggered---Triggered---1" class="label edgeLabel"><rect height="0.1" width="0.1"></rect><g transform="translate(0, 0)" style="" class="label"><rect></rect><foreignObject height="0" width="0"><div style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 10px; text-align: center;" xmlns="http://www.w3.org/1999/xhtml"><span class="nodeLabel"></span></div></foreignObject></g></g><g transform="translate(388.375, 36.5)" id="Triggered---Triggered---2" class="label edgeLabel"><rect height="0.1" width="0.1"></rect><g transform="translate(0, 0)" style="" class="label"><rect></rect><foreignObject height="0" width="0"><div style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 10px; text-align: center;" xmlns="http://www.w3.org/1999/xhtml"><span class="nodeLabel"></span></div></foreignObject></g></g></g></g></g></svg><p id="pq6w9_257">This is inconvenient because we have to create States for each step in the countdown. If we needed to count 1000 ticks then would need 1000 states.</p><p id="pq6w9_258">It is much easier and more flexible to model this with two states (Countdown and Triggered) and hold the number as a variable (count).</p><svg aria-roledescription="stateDiagram" role="graphics-document document" viewBox="0 0 691.796875 167.125" style="max-width: 691.796875px;" class="statediagram" xmlns="http://www.w3.org/2000/svg" width="100%" id="mermaid"><g><defs><marker orient="auto" markerUnits="userSpaceOnUse" markerHeight="14" markerWidth="20" refY="7" refX="19" id="mermaid_stateDiagram-barbEnd"><path d="M 19,7 L9,13 L14,7 L9,1 Z"></path></marker></defs><g class="root"><g class="clusters"></g><g class="edgePaths"><path marker-end="url(#mermaid_stateDiagram-barbEnd)" style=";fill:none" class="edge-thickness-normal edge-pattern-solid transition" id="edge0" d="M22,71.05L32.081,71.05C42.161,71.05,62.323,71.05,77.444,71.05C92.565,71.05,102.646,71.05,112.727,71.05C122.807,71.05,132.888,71.05,137.928,71.05L142.969,71.05"></path><path style=";fill:none" class="edge-thickness-normal edge-pattern-solid transition" id="Countdown-cyclic-special-1" d="M240.141,51.507L253.195,46.256C266.25,41.005,292.359,30.502,315.442,25.251C338.524,20,358.58,20,378.635,20C398.691,20,418.746,20,428.774,20L438.802,20"></path><path style=";fill:none" class="edge-thickness-normal edge-pattern-solid transition" id="Countdown-cyclic-special-mid" d="M438.902,20L456.613,20C474.325,20,509.748,20,532.816,21.459C555.883,22.919,566.594,25.837,577.305,28.756C588.016,31.674,598.727,34.593,604.082,36.052L609.438,37.511"></path><path marker-end="url(#mermaid_stateDiagram-barbEnd)" style=";fill:none" class="edge-thickness-normal edge-pattern-solid transition" id="Countdown-cyclic-special-2" d="M609.438,37.539L598.727,40.457C588.016,43.376,566.594,49.213,538.163,52.131C509.732,55.05,474.292,55.05,436.508,55.05C398.724,55.05,358.596,55.05,332.005,55.873C305.414,56.696,292.359,58.342,279.305,59.987C266.25,61.633,253.195,63.279,246.668,64.102L240.141,64.925"></path><path marker-end="url(#mermaid_stateDiagram-barbEnd)" style=";fill:none" class="edge-thickness-normal edge-pattern-solid transition" id="edge2" d="M240.141,81.578L253.195,84.406C266.25,87.235,292.359,92.893,311.941,97.162C331.523,101.432,344.578,104.314,357.633,107.196C370.688,110.078,383.742,112.959,390.27,114.4L396.797,115.841"></path><path style=";fill:none" class="edge-thickness-normal edge-pattern-solid transition" id="Triggered-cyclic-special-1" d="M480.906,118.193L491.617,116.428C502.328,114.662,523.75,111.131,539.816,109.366C555.883,107.6,566.594,107.6,577.305,107.6C588.016,107.6,598.727,107.6,604.082,107.6L609.438,107.6"></path><path style=";fill:none" class="edge-thickness-normal edge-pattern-solid transition" id="Triggered-cyclic-special-mid" d="M609.538,107.6L615.713,107.6C621.889,107.6,634.241,107.6,643.504,109.058C652.768,110.517,658.944,113.434,665.12,116.351C671.295,119.268,677.471,122.184,680.559,123.643L683.647,125.101"></path><path marker-end="url(#mermaid_stateDiagram-barbEnd)" style=";fill:none" class="edge-thickness-normal edge-pattern-solid transition" id="Triggered-cyclic-special-2" d="M683.647,125.149L677.471,128.066C671.295,130.982,658.944,136.816,646.584,139.733C634.224,142.65,621.856,142.65,604.952,142.65C588.049,142.65,566.61,142.65,550.536,141.767C534.461,140.884,523.75,139.119,513.039,137.353C502.328,135.588,491.617,133.822,486.262,132.94L480.906,132.057"></path><path marker-end="url(#mermaid_stateDiagram-barbEnd)" style=";fill:none" class="edge-thickness-normal edge-pattern-solid transition" id="edge4" d="M396.797,132.811L383.742,135.196C370.688,137.582,344.578,142.354,323.728,140.066C302.877,137.779,287.286,128.433,271.694,119.088C256.103,109.742,240.512,100.396,232.716,95.723L224.92,91.05"></path></g><g class="edgeLabels"><g transform="translate(82.484375, 71.05000000074506)" class="edgeLabel"><g transform="translate(-35.484375, -12)" class="label"><foreignObject height="24" width="70.96875"><div style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;" class="labelBkg" xmlns="http://www.w3.org/1999/xhtml"><span class="edgeLabel"><p>/count = 3</p></span></div></foreignObject></g></g><g class="edgeLabel"><g transform="translate(0, 0)" class="label"><foreignObject height="0" width="0"><div style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;" class="labelBkg" xmlns="http://www.w3.org/1999/xhtml"><span class="edgeLabel"></span></div></foreignObject></g></g><g transform="translate(545.171875, 20)" class="edgeLabel"><g transform="translate(-39.265625, -12)" class="label"><foreignObject height="24" width="78.53125"><div style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;" class="labelBkg" xmlns="http://www.w3.org/1999/xhtml"><span class="edgeLabel"><p>tick/count--</p></span></div></foreignObject></g></g><g class="edgeLabel"><g transform="translate(0, 0)" class="label"><foreignObject height="0" width="0"><div style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;" class="labelBkg" xmlns="http://www.w3.org/1999/xhtml"><span class="edgeLabel"></span></div></foreignObject></g></g><g transform="translate(318.46875, 98.55000000074506)" class="edgeLabel"><g transform="translate(-49.9765625, -12)" class="label"><foreignObject height="24" width="99.953125"><div style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;" class="labelBkg" xmlns="http://www.w3.org/1999/xhtml"><span class="edgeLabel"><p>tick[count==0]</p></span></div></foreignObject></g></g><g class="edgeLabel"><g transform="translate(0, 0)" class="label"><foreignObject height="0" width="0"><div style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;" class="labelBkg" xmlns="http://www.w3.org/1999/xhtml"><span class="edgeLabel"></span></div></foreignObject></g></g><g transform="translate(646.5921875014901, 107.60000000149012)" class="edgeLabel"><g transform="translate(-12.0546875, -12)" class="label"><foreignObject height="24" width="24.109375"><div style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;" class="labelBkg" xmlns="http://www.w3.org/1999/xhtml"><span class="edgeLabel"><p>tick</p></span></div></foreignObject></g></g><g class="edgeLabel"><g transform="translate(0, 0)" class="label"><foreignObject height="0" width="0"><div style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;" class="labelBkg" xmlns="http://www.w3.org/1999/xhtml"><span class="edgeLabel"></span></div></foreignObject></g></g><g transform="translate(318.46875, 147.12500000186265)" class="edgeLabel"><g transform="translate(-53.328125, -12)" class="label"><foreignObject height="24" width="106.65625"><div style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;" class="labelBkg" xmlns="http://www.w3.org/1999/xhtml"><span class="edgeLabel"><p>reset/count = 3</p></span></div></foreignObject></g></g></g><g class="nodes"><g transform="translate(15, 71.05000000074506)" id="state-root_start-0" class="node default"><circle height="14" width="14" r="7" class="state-start"></circle></g><g transform="translate(191.5546875, 71.05000000074506)" id="state-Countdown-4" class="node  statediagram-state"><rect height="40" width="97.171875" y="-20" x="-48.5859375" ry="5" data-et="node" data-id="abc" rx="5" style="" class="basic label-container"></rect><g transform="translate(-40.5859375, -12)" style="" class="label"><rect></rect><foreignObject height="24" width="81.171875"><div style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;" xmlns="http://www.w3.org/1999/xhtml"><span class="nodeLabel"><p>Countdown</p></span></div></foreignObject></g></g><g transform="translate(438.8515625, 125.12500000186265)" id="state-Triggered-4" class="node  statediagram-state"><rect height="40" width="84.109375" y="-20" x="-42.0546875" ry="5" data-et="node" data-id="abc" rx="5" style="" class="basic label-container"></rect><g transform="translate(-34.0546875, -12)" style="" class="label"><rect></rect><foreignObject height="24" width="68.109375"><div style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;" xmlns="http://www.w3.org/1999/xhtml"><span class="nodeLabel"><p>Triggered</p></span></div></foreignObject></g></g><g transform="translate(438.8515625, 20)" id="Countdown---Countdown---1" class="label edgeLabel"><rect height="0.1" width="0.1"></rect><g transform="translate(0, 0)" style="" class="label"><rect></rect><foreignObject height="0" width="0"><div style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 10px; text-align: center;" xmlns="http://www.w3.org/1999/xhtml"><span class="nodeLabel"></span></div></foreignObject></g></g><g transform="translate(609.4875000007451, 37.52500000037253)" id="Countdown---Countdown---2" class="label edgeLabel"><rect height="0.1" width="0.1"></rect><g transform="translate(0, 0)" style="" class="label"><rect></rect><foreignObject height="0" width="0"><div style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 10px; text-align: center;" xmlns="http://www.w3.org/1999/xhtml"><span class="nodeLabel"></span></div></foreignObject></g></g><g transform="translate(609.4875000007451, 107.60000000149012)" id="Triggered---Triggered---1" class="label edgeLabel"><rect height="0.1" width="0.1"></rect><g transform="translate(0, 0)" style="" class="label"><rect></rect><foreignObject height="0" width="0"><div style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 10px; text-align: center;" xmlns="http://www.w3.org/1999/xhtml"><span class="nodeLabel"></span></div></foreignObject></g></g><g transform="translate(683.6968750022352, 125.12500000186265)" id="Triggered---Triggered---2" class="label edgeLabel"><rect height="0.1" width="0.1"></rect><g transform="translate(0, 0)" style="" class="label"><rect></rect><foreignObject height="0" width="0"><div style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 10px; text-align: center;" xmlns="http://www.w3.org/1999/xhtml"><span class="nodeLabel"></span></div></foreignObject></g></g></g></g></g></svg><p id="pq6w9_260">Here we are using actions and guard conditions. The guard condition says that we can only make the transition from Countdown to Triggered when <code class="code" id="pq6w9_272">count == 0</code>;</p><p id="pq6w9_261">The notation is:</p><svg aria-roledescription="stateDiagram" role="graphics-document document" viewBox="0 0 235.421875 56" style="max-width: 235.421875px;" class="statediagram" xmlns="http://www.w3.org/2000/svg" width="100%" id="mermaid"><g><defs><marker orient="auto" markerUnits="userSpaceOnUse" markerHeight="14" markerWidth="20" refY="7" refX="19" id="mermaid_stateDiagram-barbEnd"><path d="M 19,7 L9,13 L14,7 L9,1 Z"></path></marker></defs><g class="root"><g class="clusters"></g><g class="edgePaths"><path marker-end="url(#mermaid_stateDiagram-barbEnd)" style=";fill:none" class="edge-thickness-normal edge-pattern-solid transition" id="edge0" d="M74.844,28L82.507,28C90.169,28,105.495,28,116.989,28C128.483,28,136.146,28,143.809,28C151.471,28,159.134,28,162.965,28L166.797,28"></path></g><g class="edgeLabels"><g transform="translate(120.8203125, 28)" class="edgeLabel"><g transform="translate(-20.9765625, -12)" class="label"><foreignObject height="24" width="41.953125"><div style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;" class="labelBkg" xmlns="http://www.w3.org/1999/xhtml"><span class="edgeLabel"><p>e[g]/A</p></span></div></foreignObject></g></g></g><g class="nodes"><g transform="translate(41.421875, 28)" id="state-Source-0" class="node  statediagram-state"><rect height="40" width="66.84375" y="-20" x="-33.421875" ry="5" data-et="node" data-id="abc" rx="5" style="" class="basic label-container"></rect><g transform="translate(-25.421875, -12)" style="" class="label"><rect></rect><foreignObject height="24" width="50.84375"><div style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;" xmlns="http://www.w3.org/1999/xhtml"><span class="nodeLabel"><p>Source</p></span></div></foreignObject></g></g><g transform="translate(197.109375, 28)" id="state-Target-0" class="node  statediagram-state"><rect height="40" width="60.625" y="-20" x="-30.3125" ry="5" data-et="node" data-id="abc" rx="5" style="" class="basic label-container"></rect><g transform="translate(-22.3125, -12)" style="" class="label"><rect></rect><foreignObject height="24" width="44.625"><div style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;" xmlns="http://www.w3.org/1999/xhtml"><span class="nodeLabel"><p>Target</p></span></div></foreignObject></g></g></g></g></g></svg><p id="pq6w9_263">You read this as:</p><ul class="list _bullet" id="pq6w9_264"><li class="list__item" id="pq6w9_273"><p id="pq6w9_277">The event <code class="code" id="pq6w9_278">e</code> triggers the transition.</p></li><li class="list__item" id="pq6w9_274"><p id="pq6w9_279">The optional boolean guard condition <code class="code" id="pq6w9_280">g</code> is evaluated when the event <code class="code" id="pq6w9_281">e</code> occurs. If the guard condition evaluates true then the transition can happen, if false the transition is blocked. Guard conditions can use any data available to it to make the decision.</p></li><li class="list__item" id="pq6w9_275"><p id="pq6w9_282">Action or Actions <code class="code" id="pq6w9_283">A</code> are the effect of the transition. If the transition was blocked by a guard condition then there is no effect.</p></li><li class="list__item" id="pq6w9_276"><p id="pq6w9_284">There is a transition from source state to target state.</p></li></ul><p id="pq6w9_265">This implementation uses an <code class="code" id="pq6w9_285">int count</code> variable in the <code class="code" id="pq6w9_286">Countdown</code> class.</p><div class="code-block" data-lang="java">
+interface Context {
+    void changeState(State nextState);
+}
+
+
+interface State {
+    void tick(Context context);
+    void reset(Context context);
+}
+
+
+class Countdown implements State {
+    private int count = 3;
+
+    @Override
+    public String toString() {
+        return String.format(&quot;Countdown(%d)&quot;, count);
+    }
+
+    @Override
+    public void tick(Context context) {
+        if (--count == 0) {
+            State next = new Triggered();
+            System.out.printf(&quot;tick %s -&gt; %s%n&quot;, this, next);
+            context.changeState(next);
+        } else {
+            //stay in this state
+            System.out.printf(&quot;tick %s%n&quot;, this);
+        }
+    }
+
+    @Override
+    public void reset(Context context) {
+        State next = new Countdown();
+        System.out.printf(&quot;reset %s -&gt; %s%n&quot;, this, next);
+        context.changeState(next);
+    }
+}
+
+class Triggered implements State {
+
+    @Override
+    public String toString() {
+        return &quot;Triggered&quot;;
+    }
+
+    @Override
+    public void tick(Context context) {
+        //ignore
+    }
+
+    @Override
+    public void reset(Context context)
+    {
+        State next = new Countdown();
+        System.out.printf(&quot;reset %s -&gt; %s%n&quot;, this, next);
+        context.changeState(next);
+    }
+}
+
+class ExtendedStateMachine implements Context {
+    private State currentState;
+
+    ExtendedStateMachine() {
+        currentState = new Countdown(); //initial state
+    }
+
+    @Override
+    public void changeState(State nextState) {
+        currentState = nextState;
+    }
+
+    public void tick() {
+        currentState.tick(this);
+    }
+
+    public void reset() {
+        currentState.reset(this);
+    }
+}
+</div><p id="pq6w9_267">Usage:</p><div class="code-block" data-lang="java">
+ExtendedStateMachine extendedStateMachine = new ExtendedStateMachine();
+extendedStateMachine.tick();
+extendedStateMachine.tick();
+extendedStateMachine.tick();
+extendedStateMachine.tick();
+extendedStateMachine.tick();
+extendedStateMachine.reset();
+extendedStateMachine.tick();
+extendedStateMachine.reset();
+extendedStateMachine.tick();
+
+// Output
+// tick Countdown(2)
+// tick Countdown(1)
+// tick Countdown(0) -&gt; Triggered
+// reset Triggered -&gt; Countdown(3)
+// tick Countdown(2)
+// reset Countdown(2) -&gt; Countdown(3)
+// tick Countdown(2)
+</div><p id="pq6w9_269">ESMs use a combination of states, data variables and guard conditions.</p><aside class="prompt" data-type="tip" data-title="" id="pq6w9_270"><p id="pq6w9_287">☑ The State patten is an object-oriented solution to managing the state and behaviour in the presence of events. It puts all the processing logic into a simple class structure, rather than using <code class="code" id="pq6w9_289">if</code> or <code class="code" id="pq6w9_290">switch</code> statements spread through the codebase.</p><p id="pq6w9_288">☑ Using State Transition Tables and State Machine diagrams are a great way of capturing and understanding requirements that directly translate to the state pattern code.</p></aside><aside class="prompt" data-type="tip" data-title="" id="pq6w9_271"><p id="pq6w9_291">☑ Some open-source libraries provide a configurable framework for State Machines using code that looks more like entries in a State Transition Table.</p></aside></section><section class="chapter"><h2 id="the-general-state-pattern" data-toc="the-general-state-pattern">The general State pattern</h2><svg aria-roledescription="classDiagram" role="graphics-document document" viewBox="0 0 421.671875 473"  xmlns="http://www.w3.org/2000/svg" width="421.671875" id="mermaid"><g><defs><marker orient="auto" markerHeight="240" markerWidth="190" refY="7" refX="18" class="marker aggregation classDiagram" id="mermaid_classDiagram-aggregationStart"><path d="M 18,7 L9,13 L1,7 L9,1 Z"></path></marker></defs><defs><marker orient="auto" markerHeight="28" markerWidth="20" refY="7" refX="1" class="marker aggregation classDiagram" id="mermaid_classDiagram-aggregationEnd"><path d="M 18,7 L9,13 L1,7 L9,1 Z"></path></marker></defs><defs><marker orient="auto" markerHeight="240" markerWidth="190" refY="7" refX="18" class="marker extension classDiagram" id="mermaid_classDiagram-extensionStart"><path d="M 1,7 L18,13 V 1 Z"></path></marker></defs><defs><marker orient="auto" markerHeight="28" markerWidth="20" refY="7" refX="1" class="marker extension classDiagram" id="mermaid_classDiagram-extensionEnd"><path d="M 1,1 V 13 L18,7 Z"></path></marker></defs><defs><marker orient="auto" markerHeight="240" markerWidth="190" refY="7" refX="18" class="marker composition classDiagram" id="mermaid_classDiagram-compositionStart"><path d="M 18,7 L9,13 L1,7 L9,1 Z"></path></marker></defs><defs><marker orient="auto" markerHeight="28" markerWidth="20" refY="7" refX="1" class="marker composition classDiagram" id="mermaid_classDiagram-compositionEnd"><path d="M 18,7 L9,13 L1,7 L9,1 Z"></path></marker></defs><defs><marker orient="auto" markerHeight="240" markerWidth="190" refY="7" refX="6" class="marker dependency classDiagram" id="mermaid_classDiagram-dependencyStart"><path d="M 5,7 L9,13 L1,7 L9,1 Z"></path></marker></defs><defs><marker orient="auto" markerHeight="28" markerWidth="20" refY="7" refX="13" class="marker dependency classDiagram" id="mermaid_classDiagram-dependencyEnd"><path d="M 18,7 L9,13 L14,7 L9,1 Z"></path></marker></defs><defs><marker orient="auto" markerHeight="240" markerWidth="190" refY="7" refX="13" class="marker lollipop classDiagram" id="mermaid_classDiagram-lollipopStart"><circle r="6" cy="7" cx="7" fill="transparent" stroke="black"></circle></marker></defs><defs><marker orient="auto" markerHeight="240" markerWidth="190" refY="7" refX="1" class="marker lollipop classDiagram" id="mermaid_classDiagram-lollipopEnd"><circle r="6" cy="7" cx="7" fill="transparent" stroke="black"></circle></marker></defs><g class="root"><g class="clusters"></g><g class="edgePaths"><path marker-end="url(#mermaid_classDiagram-extensionEnd)" style="fill:none" class="edge-pattern-dashed relation" id="id_ConcreteContext_Context_1" d="M191.609,87.64L195.776,87.284C199.943,86.927,208.276,86.213,214.203,85.857C220.13,85.5,223.651,85.5,225.411,85.5L227.172,85.5"></path><path marker-end="url(#mermaid_classDiagram-extensionEnd)" style="fill:none" class="edge-pattern-dashed relation" id="id_ConcreteStateA_State_2" d="M185.836,419.5L190.965,419.5C196.094,419.5,206.352,419.5,220.321,408.274C234.29,397.047,251.97,374.595,260.811,363.368L269.651,352.142"></path><path marker-end="url(#mermaid_classDiagram-extensionEnd)" style="fill:none" class="edge-pattern-dashed relation" id="id_ConcreteStateB_State_3" d="M185.836,278.5L190.965,278.5C196.094,278.5,206.352,278.5,212.647,278.5C218.943,278.5,221.276,278.5,222.443,278.5L223.609,278.5"></path><path marker-end="url(#mermaid_classDiagram-dependencyEnd)" style="fill:none" class="edge-pattern-solid relation" id="id_ConcreteContext_State_4" d="M191.609,159.556L195.776,162.464C199.943,165.371,208.276,171.185,219.362,180.418C230.448,189.651,244.286,202.301,251.206,208.626L258.125,214.952"></path></g><g class="edgeLabels"><g class="edgeLabel"><g transform="translate(0, 0)" class="label"><foreignObject height="0" width="0"><div style="display: inline-block; white-space: nowrap;" xmlns="http://www.w3.org/1999/xhtml"><span class="edgeLabel"></span></div></foreignObject></g></g><g class="edgeLabel"><g transform="translate(0, 0)" class="label"><foreignObject height="0" width="0"><div style="display: inline-block; white-space: nowrap;" xmlns="http://www.w3.org/1999/xhtml"><span class="edgeLabel"></span></div></foreignObject></g></g><g class="edgeLabel"><g transform="translate(0, 0)" class="label"><foreignObject height="0" width="0"><div style="display: inline-block; white-space: nowrap;" xmlns="http://www.w3.org/1999/xhtml"><span class="edgeLabel"></span></div></foreignObject></g></g><g class="edgeLabel"><g transform="translate(0, 0)" class="label"><foreignObject height="0" width="0"><div style="display: inline-block; white-space: nowrap;" xmlns="http://www.w3.org/1999/xhtml"><span class="edgeLabel"></span></div></foreignObject></g></g></g><g class="nodes"><g transform="translate(327.640625, 85.5)" id="classId-Context-127" class="node default"><rect height="119" width="164.9375" y="-59.5" x="-82.46875" class="outer title-state" style=""></rect><line y2="4.5" y1="4.5" x2="82.46875" x1="-82.46875" class="divider"></line><line y2="20.5" y1="20.5" x2="82.46875" x1="-82.46875" class="divider"></line><g class="label"><foreignObject transform="translate( -39.71875, -52)" height="24" width="79.4375"><div style="display: inline-block; white-space: nowrap;" xmlns="http://www.w3.org/1999/xhtml"><span class="nodeLabel">«interface»</span></div></foreignObject><foreignObject transform="translate( -29.8671875, -24)" height="24" width="59.734375" class="classTitle"><div style="display: inline-block; white-space: nowrap;" xmlns="http://www.w3.org/1999/xhtml"><span class="nodeLabel">Context</span></div></foreignObject><foreignObject transform="translate( -74.96875, 28)" height="24" width="149.9375"><div style="display: inline-block; white-space: nowrap;" xmlns="http://www.w3.org/1999/xhtml"><span class="nodeLabel">setState(State) : void</span></div></foreignObject></g></g><g transform="translate(99.8046875, 95.5)" id="classId-ConcreteContext-128" class="node default"><rect height="175" width="183.609375" y="-87.5" x="-91.8046875" class="outer title-state" style=""></rect><line y2="-51.5" y1="-51.5" x2="91.8046875" x1="-91.8046875" class="divider"></line><line y2="-7.5" y1="-7.5" x2="91.8046875" x1="-91.8046875" class="divider"></line><g class="label"><foreignObject height="0" width="0"><div style="display: inline-block; white-space: nowrap;" xmlns="http://www.w3.org/1999/xhtml"><span class="nodeLabel"></span></div></foreignObject><foreignObject transform="translate( -64.640625, -80)" height="24" width="129.28125" class="classTitle"><div style="display: inline-block; white-space: nowrap;" xmlns="http://www.w3.org/1999/xhtml"><span class="nodeLabel">ConcreteContext</span></div></foreignObject><foreignObject transform="translate( -84.3046875, -40)" height="24" width="76.765625"><div style="display: inline-block; white-space: nowrap;" xmlns="http://www.w3.org/1999/xhtml"><span class="nodeLabel">State state</span></div></foreignObject><foreignObject transform="translate( -84.3046875, 0)" height="24" width="168.609375"><div style="display: inline-block; white-space: nowrap;" xmlns="http://www.w3.org/1999/xhtml"><span class="nodeLabel">ConcreteContext(State)</span></div></foreignObject><foreignObject transform="translate( -84.3046875, 28)" height="24" width="149.9375"><div style="display: inline-block; white-space: nowrap;" xmlns="http://www.w3.org/1999/xhtml"><span class="nodeLabel">setState(State) : void</span></div></foreignObject><foreignObject transform="translate( -84.3046875, 56)" height="24" width="107.109375"><div style="display: inline-block; white-space: nowrap;" xmlns="http://www.w3.org/1999/xhtml"><span class="nodeLabel">request() : void</span></div></foreignObject></g></g><g transform="translate(327.640625, 278.5)" id="classId-State-129" class="node default"><rect height="119" width="172.0625" y="-59.5" x="-86.03125" class="outer title-state" style=""></rect><line y2="4.5" y1="4.5" x2="86.03125" x1="-86.03125" class="divider"></line><line y2="20.5" y1="20.5" x2="86.03125" x1="-86.03125" class="divider"></line><g class="label"><foreignObject transform="translate( -39.71875, -52)" height="24" width="79.4375"><div style="display: inline-block; white-space: nowrap;" xmlns="http://www.w3.org/1999/xhtml"><span class="nodeLabel">«interface»</span></div></foreignObject><foreignObject transform="translate( -19.625, -24)" height="24" width="39.25" class="classTitle"><div style="display: inline-block; white-space: nowrap;" xmlns="http://www.w3.org/1999/xhtml"><span class="nodeLabel">State</span></div></foreignObject><foreignObject transform="translate( -78.53125, 28)" height="24" width="157.0625"><div style="display: inline-block; white-space: nowrap;" xmlns="http://www.w3.org/1999/xhtml"><span class="nodeLabel">handle(Context) : void</span></div></foreignObject></g></g><g transform="translate(99.8046875, 419.5)" id="classId-ConcreteStateA-130" class="node default"><rect height="91" width="172.0625" y="-45.5" x="-86.03125" class="outer title-state" style=""></rect><line y2="-9.5" y1="-9.5" x2="86.03125" x1="-86.03125" class="divider"></line><line y2="6.5" y1="6.5" x2="86.03125" x1="-86.03125" class="divider"></line><g class="label"><foreignObject height="0" width="0"><div style="display: inline-block; white-space: nowrap;" xmlns="http://www.w3.org/1999/xhtml"><span class="nodeLabel"></span></div></foreignObject><foreignObject transform="translate( -60.1875, -38)" height="24" width="120.375" class="classTitle"><div style="display: inline-block; white-space: nowrap;" xmlns="http://www.w3.org/1999/xhtml"><span class="nodeLabel">ConcreteStateA</span></div></foreignObject><foreignObject transform="translate( -78.53125, 14)" height="24" width="157.0625"><div style="display: inline-block; white-space: nowrap;" xmlns="http://www.w3.org/1999/xhtml"><span class="nodeLabel">handle(Context) : void</span></div></foreignObject></g></g><g transform="translate(99.8046875, 278.5)" id="classId-ConcreteStateB-131" class="node default"><rect height="91" width="172.0625" y="-45.5" x="-86.03125" class="outer title-state" style=""></rect><line y2="-9.5" y1="-9.5" x2="86.03125" x1="-86.03125" class="divider"></line><line y2="6.5" y1="6.5" x2="86.03125" x1="-86.03125" class="divider"></line><g class="label"><foreignObject height="0" width="0"><div style="display: inline-block; white-space: nowrap;" xmlns="http://www.w3.org/1999/xhtml"><span class="nodeLabel"></span></div></foreignObject><foreignObject transform="translate( -60.1875, -38)" height="24" width="120.375" class="classTitle"><div style="display: inline-block; white-space: nowrap;" xmlns="http://www.w3.org/1999/xhtml"><span class="nodeLabel">ConcreteStateB</span></div></foreignObject><foreignObject transform="translate( -78.53125, 14)" height="24" width="157.0625"><div style="display: inline-block; white-space: nowrap;" xmlns="http://www.w3.org/1999/xhtml"><span class="nodeLabel">handle(Context) : void</span></div></foreignObject></g></g></g></g></g></svg><div class="code-block" data-lang="java">
+interface Context {
+    void setState(State state);
+}
+
+interface State {
+    void handle(Context context);
+}
+
+class ConcreteStateA implements State {
+
+    @Override
+    public void handle(Context context) {
+        context.setState(new ConcreteStateB());
+    }
+}
+
+class ConcreteStateB implements State {
+
+    @Override
+    public void handle(Context context) {
+        context.setState(new ConcreteStateA());
+    }
+}
+
+class ConcreteContext implements Context {
+    State state;
+
+    ConcreteContext(State initialState)
+    {
+        state = initialState;
+    }
+
+    @Override
+    public void setState(State state) {
+        this.state = state;
+    }
+
+    public void request()
+    {
+        this.state.handle(this);
+    }
+}
+</div></section><section class="chapter"><h2 id="the-ecommerce-example" data-toc="the-ecommerce-example">The Ecommerce Example</h2><p id="pq6w9_294">This is an implementation of the Ecommerce example. This uses an abstract super class that provides a default implementation for all methods (an illegal state exception).</p><p id="pq6w9_295">We have generally advised against using class inheritance, but here is makes sense to use subclasses for the concrete states because they can override only the methods they need to implement, leaving default behaviour to the superclass.</p><p id="pq6w9_296">The example uses the Java inner (nested) class feature.</p><aside class="prompt" data-type="tip" data-title="" id="pq6w9_297"><p id="pq6w9_304">⚠ Non-static nested classes have direct access to the members (fields and methods) of the outer class, even if they are private.</p></aside><p id="pq6w9_298">The example defines two interfaces for email and payment services.</p><div class="code-block" data-lang="java">
+interface EmailService {
+    void sendOrderConfirmation(String orderNumber);
+
+    void sendCustomerCancellationConfirmationEmail(String orderNumber);
+
+    void sendWarehouseCancellationApologyEmail(String orderNumber);
+
+    void notifyCourier(String orderNumber);
+
+    void sendDispatchConfirmationEmail(String orderNumber);
+
+    void sendReturnConfirmationEmail(String orderNumber);
+}
+
+interface PaymentService {
+    void refundCustomer(String orderNumber);
+}
+
+</div><p id="pq6w9_300">The order class nests the individual state classes.</p><div class="code-block" data-lang="java">
+class Order {
+
+    private interface State {
+        void paymentConfirmed();
+
+        void customerCancelled();
+
+        void warehouseCancelled();
+
+        void itemPicked();
+
+        void orderPacked();
+
+        void courierPickup();
+
+        void customerReturn();
+    }
+
+
+    private abstract static class AbstractState implements State {
+        @Override
+        public void paymentConfirmed() {
+            throw new IllegalStateException();
+        }
+
+        @Override
+        public void customerCancelled() {
+            throw new IllegalStateException();
+        }
+
+        @Override
+        public void warehouseCancelled() {
+            throw new IllegalStateException();
+        }
+
+        @Override
+        public void itemPicked() {
+            throw new IllegalStateException();
+        }
+
+        @Override
+        public void orderPacked() {
+            throw new IllegalStateException();
+        }
+
+        @Override
+        public void courierPickup() {
+            throw new IllegalStateException();
+        }
+
+        @Override
+        public void customerReturn() {
+            throw new IllegalStateException();
+        }
+    }
+
+    private class Received extends AbstractState {
+
+        @Override
+        public String toString() {
+            return &quot;Received&quot;;
+        }
+
+
+        @Override
+        public void paymentConfirmed() {
+            emailService.sendOrderConfirmation(orderNumber);
+            currentState = new Paid();
+        }
+
+        @Override
+        public void customerCancelled() {
+            paymentService.refundCustomer(orderNumber);
+            emailService.sendCustomerCancellationConfirmationEmail(orderNumber);
+            currentState = new Cancelled();
+        }
+
+    }
+
+    private class Paid extends AbstractState {
+
+        private int itemsToPick = orderItems;
+
+        @Override
+        public String toString() {
+            return &quot;Paid&quot;;
+        }
+
+        @Override
+        public void itemPicked() {
+            if (--itemsToPick == 0) {
+                currentState = new Picked();
+            }
+        }
+
+        @Override
+        public void customerCancelled() {
+            itemsToPick = orderItems;
+            paymentService.refundCustomer(orderNumber);
+            emailService.sendCustomerCancellationConfirmationEmail(orderNumber);
+            currentState = new Cancelled();
+        }
+
+        @Override
+        public void warehouseCancelled() {
+            itemsToPick = orderItems;
+            paymentService.refundCustomer(orderNumber);
+            emailService.sendWarehouseCancellationApologyEmail(orderNumber);
+            currentState = new Cancelled();
+        }
+    }
+
+    private class Picked extends AbstractState {
+
+        @Override
+        public String toString() {
+            return &quot;Picked&quot;;
+        }
+
+        @Override
+        public void orderPacked() {
+            emailService.notifyCourier(orderNumber);
+            currentState = new Packed();
+        }
+
+        @Override
+        public void warehouseCancelled() {
+            paymentService.refundCustomer(orderNumber);
+            emailService.sendWarehouseCancellationApologyEmail(orderNumber);
+            currentState = new Cancelled();
+        }
+    }
+
+    private class Packed extends AbstractState {
+
+        @Override
+        public String toString() {
+            return &quot;Packed&quot;;
+        }
+
+        @Override
+        public void courierPickup() {
+            emailService.sendDispatchConfirmationEmail(orderNumber);
+            currentState = new Dispatched();
+        }
+
+    }
+
+    private class Dispatched extends AbstractState {
+
+        @Override
+        public String toString() {
+            return &quot;Dispatched&quot;;
+        }
+
+        @Override
+        public void customerReturn() {
+            paymentService.refundCustomer(orderNumber);
+            emailService.sendReturnConfirmationEmail(orderNumber);
+            currentState = new Returned();
+        }
+    }
+
+    private static class Returned extends AbstractState {
+
+        @Override
+        public String toString() {
+            return &quot;Returned&quot;;
+        }
+
+        //There are no legal transitions from Returned state, it is the final state
+    }
+
+    private static class Cancelled extends AbstractState {
+
+        @Override
+        public String toString() {
+            return &quot;Cancelled&quot;;
+        }
+
+        //There are no legal transitions from Cancelled state, it is the final state
+    }
+
+
+    private final String orderNumber;
+    private final int orderItems;
+    private final EmailService emailService;
+    private final PaymentService paymentService;
+    private State currentState = new Received();
+
+    Order(String orderNumber, int orderItems, EmailService emailService, PaymentService paymentService) {
+        this.orderNumber = orderNumber;
+        this.orderItems = orderItems;
+        this.emailService = emailService;
+        this.paymentService = paymentService;
+    }
+
+    void paymentConfirmed() {
+        currentState.paymentConfirmed();
+    }
+
+    void customerCancelled() {
+        currentState.customerCancelled();
+    }
+
+    void warehouseCancelled() {
+        currentState.warehouseCancelled();
+    }
+
+    void itemPicked() {
+        currentState.itemPicked();
+    }
+
+    void orderPacked() {
+        currentState.orderPacked();
+    }
+
+    void courierPickup() {
+        currentState.courierPickup();
+    }
+
+    void customerReturn() {
+        currentState.customerReturn();
+    }
+
+    public String getCurrentState() {
+        return String.format(&quot;%s %s&quot;, orderNumber, currentState);
+    }
+}
+</div><p id="pq6w9_302">Usage:</p><div class="code-block" data-lang="java">
+EmailService emailService = new DummyEmailService();
+PaymentService paymentService = new DummyPaymentService();
+Order order = new Order(&quot;10001234&quot;, 3, emailService,paymentService);
+System.out.printf(&quot;%s%n&quot;, order.getCurrentState());
+order.paymentConfirmed();
+System.out.printf(&quot;%s%n&quot;, order.getCurrentState());
+order.itemPicked();
+System.out.printf(&quot;%s%n&quot;, order.getCurrentState());
+order.itemPicked();
+System.out.printf(&quot;%s%n&quot;, order.getCurrentState());
+order.itemPicked();
+System.out.printf(&quot;%s%n&quot;, order.getCurrentState());
+order.orderPacked();
+System.out.printf(&quot;%s%n&quot;, order.getCurrentState());
+order.courierPickup();
+System.out.printf(&quot;%s%n&quot;, order.getCurrentState());
+order.customerReturn();
+System.out.printf(&quot;%s%n&quot;, order.getCurrentState());
+
+// Output
+// 10001234 Received
+// Email: Thank you for your order number 10001234.
+// 10001234 Paid
+// 10001234 Paid
+// 10001234 Paid
+// 10001234 Picked
+// Email: Order number 10001234 is ready for collection.
+// 10001234 Packed
+// Email: Your order number 10001234 has been dispatched.
+// 10001234 Dispatched
+// Payment: refund for order number 10001234.
+// Email: Your return of order number 10001234 has been received.
+// 10001234 Returned
+</div></section><div class="last-modified">07 November 2025</div><div data-feedback-placeholder="true"></div><div class="navigation-links _bottom"><a href="multiclassdesign02.html" class="navigation-links__prev">Design with multiple classes - Patterns for the co-ordination of multiple classes</a><a href="dependencies.html" class="navigation-links__next">Dependencies</a></div></article><div id="disqus_thread"></div></div></section></main></div><script src="https://resources.jetbrains.com/writerside/apidoc/6.26.0-b913/app.js"></script></body></html>

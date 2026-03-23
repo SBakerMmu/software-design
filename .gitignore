@@ -5,8 +5,5 @@
 # Build artifacts.
 output/
 
-# Unzipped website.
-website/
-
 # PDF artifacts.
 pdf/

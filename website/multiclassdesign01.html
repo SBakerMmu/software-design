@@ -1,0 +1,509 @@
+<!DOCTYPE html SYSTEM "about:legacy-compat">
+<html lang="en-US" data-preset="contrast" data-primary-color="#307FFF"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="robots" content="noindex"><meta name="built-on" content="2026-03-23T15:44:20.423855984"><title>Designing with multiple classes - Maintainable code, the Single Responsibility and Dependency Inversion principles. | Software Design and Architecture</title><script type="application/json" id="virtual-toc-data">[{"id":"what-is-maintainable-code","level":0,"title":"What is Maintainable Code","anchor":"#what-is-maintainable-code"},{"id":"the-single-responsibility-principle-srp","level":0,"title":"The Single Responsibility Principle (SRP)","anchor":"#the-single-responsibility-principle-srp"},{"id":"the-interface-segregation-principle-isp","level":0,"title":"The Interface Segregation Principle (ISP)","anchor":"#the-interface-segregation-principle-isp"},{"id":"writing-small-classes-with-short-methods","level":0,"title":"Writing Small Classes with Short Methods","anchor":"#writing-small-classes-with-short-methods"},{"id":"don-t-talk-to-strangers-classes-that-aggregate-other-classes","level":0,"title":"Don\u0027t talk to strangers - Classes that aggregate other classes","anchor":"#don-t-talk-to-strangers-classes-that-aggregate-other-classes"},{"id":"increase-testability-by-depending-on-interfaces-rather-than-concrete-classes","level":0,"title":"Increase testability by depending on interfaces rather than concrete classes","anchor":"#increase-testability-by-depending-on-interfaces-rather-than-concrete-classes"},{"id":"the-dependency-inversion-principle-dip","level":0,"title":"The Dependency Inversion Principle (DIP)","anchor":"#the-dependency-inversion-principle-dip"},{"id":"the-adapter-pattern","level":0,"title":"The Adapter Pattern","anchor":"#the-adapter-pattern"}]</script><script type="application/json" id="topic-shortcuts"></script><link href="https://resources.jetbrains.com/writerside/apidoc/6.26.0-b913/app.css" rel="stylesheet"><meta name="msapplication-TileColor" content="#000000"><link rel="apple-touch-icon" sizes="180x180" href="https://jetbrains.com/apple-touch-icon.png"><link rel="icon" type="image/png" sizes="32x32" href="https://jetbrains.com/favicon-32x32.png"><link rel="icon" type="image/png" sizes="16x16" href="https://jetbrains.com/favicon-16x16.png"><meta name="msapplication-TileImage" content="https://resources.jetbrains.com/storage/ui/favicons/mstile-144x144.png"><meta name="msapplication-square70x70logo" content="https://resources.jetbrains.com/storage/ui/favicons/mstile-70x70.png"><meta name="msapplication-square150x150logo" content="https://resources.jetbrains.com/storage/ui/favicons/mstile-150x150.png"><meta name="msapplication-wide310x150logo" content="https://resources.jetbrains.com/storage/ui/favicons/mstile-310x150.png"><meta name="msapplication-square310x310logo" content="https://resources.jetbrains.com/storage/ui/favicons/mstile-310x310.png"><meta name="image" content=""><!-- Open Graph --><meta property="og:title" content="Designing with multiple classes - Maintainable code, the Single Responsibility and Dependency Inversion principles. | Software Design and Architecture"><meta property="og:description" content=""><meta property="og:image" content=""><meta property="og:site_name" content="Software Design and Architecture Help"><meta property="og:type" content="website"><meta property="og:locale" content="en_US"><meta property="og:url" content="writerside-documentation/multiclassdesign01.html"><!-- End Open Graph --><!-- Twitter Card --><meta name="twitter:card" content="summary_large_image"><meta name="twitter:site" content=""><meta name="twitter:title" content="Designing with multiple classes - Maintainable code, the Single Responsibility and Dependency Inversion principles. | Software Design and Architecture"><meta name="twitter:description" content=""><meta name="twitter:creator" content=""><meta name="twitter:image:src" content=""><!-- End Twitter Card --><!-- Schema.org WebPage --><script type="application/ld+json">{
+    "@context": "http://schema.org",
+    "@type": "WebPage",
+    "@id": "writerside-documentation/multiclassdesign01.html#webpage",
+    "url": "writerside-documentation/multiclassdesign01.html",
+    "name": "Designing with multiple classes - Maintainable code, the Single Responsibility and Dependency Inversion principles. | Software Design and Architecture",
+    "description": "",
+    "image": "",
+    "inLanguage":"en-US"
+}</script><!-- End Schema.org --><!-- Schema.org WebSite --><script type="application/ld+json">{
+    "@type": "WebSite",
+    "@id": "writerside-documentation/#website",
+    "url": "writerside-documentation/",
+    "name": "Software Design and Architecture Help"
+}</script><!-- End Schema.org --></head><body data-id="MultiClassDesign01" data-main-title="Designing with multiple classes - Maintainable code, the Single Responsibility and Dependency Inversion principles." data-article-props="{&quot;seeAlsoStyle&quot;:&quot;links&quot;}" data-template="article" data-breadcrumbs=""><div class="wrapper"><main class="panel _main"><header class="panel__header"><div class="container"><h3>Software Design and Architecture  Help</h3><div class="panel-trigger"></div></div></header><section class="panel__content"><div class="container"><article class="article" data-shortcut-switcher="inactive"><h1 data-toc="MultiClassDesign01" id="MultiClassDesign01.md">Designing with multiple classes - Maintainable code, the Single Responsibility and Dependency Inversion principles.</h1><section class="chapter"><h2 id="what-is-maintainable-code" data-toc="what-is-maintainable-code">What is Maintainable Code</h2><p id="-9fp7w3_11">We use the term <span class="control" id="-9fp7w3_27">Software Product</span> to mean any software bigger than a few classes that must meet requirements set by a stakeholder. Student assignments (on this module anyway) count as software products (the stakeholder is the module leader). Industrial and commercial products can comprise hundreds or thousands of classes - their definition of a software product would expand to include data, communications with external services and the means of deploying the software. Large software products cost GBP millions over their lifetime.</p><p id="-9fp7w3_12">We use the term <span class="control" id="-9fp7w3_28">Software Project</span> to mean the organisational effort and resources (in our case generally people) that goes into creating the product. Projects are the means of production: Products are what you produce.</p><p id="-9fp7w3_13">Amongst many other things, running a software project is about making <span class="control" id="-9fp7w3_29">trade-offs</span> - prioritising one product characteristic over another. You might prioritise creating a new feature (enhancing product functionality) instead of spending time improving the speed of an existing feature (enhancing product performance). As another example of a trade-off, yoi might choose to prioritise product security (for example by building in 2-Factor Authentication) over product usability (the extra authentication step is hard for people to understand, requires them to carry a 2FA device and slows them down when logging in).</p><p id="-9fp7w3_14">There is an ISO Standards document BS ISO/IEC 25010:2023 (British Standards Institution, 2023) which defines 9 quality characteristics of a software product that you might need to consider as someone responsible for a Software Product. As this is a technical standard it is not an easy read, but it names and defines a set of product characteristics (instead making up your own names and definitions) and provides a checklist when thinking about what your qualities your software product needs to be successful in the eyes of your users.</p><p id="-9fp7w3_15">The standard defines 9 characteristics of product quality (each one has sub-characteristics)</p><ol class="list _decimal" id="-9fp7w3_16" type="1"><li class="list__item" id="-9fp7w3_30"><p id="-9fp7w3_39">Functional Suitability</p></li><li class="list__item" id="-9fp7w3_31"><p id="-9fp7w3_40">Performance Efficiency</p></li><li class="list__item" id="-9fp7w3_32"><p id="-9fp7w3_41">Compatibility</p></li><li class="list__item" id="-9fp7w3_33"><p id="-9fp7w3_42">Interaction Capability</p></li><li class="list__item" id="-9fp7w3_34"><p id="-9fp7w3_43">Reliability</p></li><li class="list__item" id="-9fp7w3_35"><p id="-9fp7w3_44">Security</p></li><li class="list__item" id="-9fp7w3_36"><p id="-9fp7w3_45">Maintainability</p></li><li class="list__item" id="-9fp7w3_37"><p id="-9fp7w3_46">Flexibility</p></li><li class="list__item" id="-9fp7w3_38"><p id="-9fp7w3_47">Safety</p></li></ol><p id="-9fp7w3_17">Every product will have different a different balance between these characteristics, and it is not possible to say which characteristics will be most important on any given project, but it is a pretty safe bet that regardless of the type of product or project you end up working on, your product quality and the lifetime cost of the product will be enhanced by writing <span class="control" id="-9fp7w3_48">maintainable</span> software.</p><p id="-9fp7w3_18">The reason for this is that all software in use by real users is constantly being modified - because of bug fixing, corrections to mis-understood requirements, improvements to existing functions, new functional and non-functional requirements or changes in the deployment environment.</p><p id="-9fp7w3_19">The more maintainable your software product is the more capable it is of being modified within reasonable cost and time constraints. All software is ultimately modifiable by throwing it away and re-writing it - we are describing the ability to be modified <span class="control" id="-9fp7w3_49">efficiently</span> - using the fewest resources and least amount of time.</p><p id="-9fp7w3_20">It is most likely that as an early career (a first or second job) software engineer you will be expected to not only write code that meets functional requirements, but that you can demonstrate you know how to write in a way that is maintainable because all commercial projects will want their product to be maintainable over a long period of time. As your career progresses, you will need to master the other characteristics (read the ISO Standard for more detail), but we are suggesting that maintainability is one of the most important and widely desired characteristics of a software product.</p><p id="-9fp7w3_21">We have selected some sub-characteristics from the standard (British Standards Institution, 2023, 3.7) that we will focus on when discussing design involving multiple classes and discuss principles and patterns that can improve these characteristics in your code and hence improve the maintainability.</p><p id="-9fp7w3_22"><span class="control" id="-9fp7w3_50">Modularity</span> being the capability of a product to limit changes from one component from affecting other components. In software engineering literature the terms <span class="control" id="-9fp7w3_51">module</span> and <span class="control" id="-9fp7w3_52">component</span> are widely. <span class="control" id="-9fp7w3_53">Module</span> could mean (depending on the context) an individual class, a group of classes working together (a component), a Java package, an entire program or a suite of programs working together - it depends on what level you are discussing. <span class="control" id="-9fp7w3_54">Component</span> usually means multiple classes hidden behind an external interface. The standard says the desirable characteristic of modularity implies &quot;modules or components with cohesive content and minimal coupling to other modules or components&quot;. We will explore what cohesion and coupling mean later on.</p><p id="-9fp7w3_23"><span class="control" id="-9fp7w3_55">Analysability</span> being the capability of a product to be assessed for impact of change and to identify parts to be modified. Put simply, the easier it is to read the codebase, the easier it is to understand it and predict where to change code and what the consequences will be.</p><p id="-9fp7w3_24"><span class="control" id="-9fp7w3_56">Modifiability</span> being the capability of a product to be modified without degrading existing quality or introducing defects. We are looking for designs where we can make a successful change that doesn't break existing code. Analysability and Modularity influence Modifiability. You might say that Modifiability = Analysability + Modularity - improving either or both of those characteristics improves Modifiability.</p><p id="-9fp7w3_25"><span class="control" id="-9fp7w3_57">Testability</span> being the capability of a product to enable a test to be designed and performed. Being able to write and execute a set of automated tests at various levels supports getting feedback quickly (quicker than manual testing) about how code meets its functional requirements and whether changes have broken other parts of the system. The more testable our software is, the easier it is to write tests.</p><p id="-9fp7w3_26">These are all desirable characteristics of a program or set of programs. The question is how practically do you go about writing code that has these desirable characteristics?</p></section><section class="chapter"><h2 id="the-single-responsibility-principle-srp" data-toc="the-single-responsibility-principle-srp">The Single Responsibility Principle (SRP)</h2><p id="-9fp7w3_58">The term <span class="control" id="-9fp7w3_71">cohesion</span> refers to the degree to which the members of a class belong together and how well they relate to each other. The term was coined by Larry Constantine in the 1960s when he was working on structured programming.</p><ul class="list _bullet" id="-9fp7w3_59"><li class="list__item" id="-9fp7w3_72"><p id="-9fp7w3_74">A class with high cohesion has elements that are all focused on a single, well-defined responsibility - all the fields and methods of the class are related to that responsibility.</p></li><li class="list__item" id="-9fp7w3_73"><p id="-9fp7w3_75">A class with low cohesion has elements that are not related to each other - the fields and methods of the class are not related to a single responsibility.</p></li></ul><p id="-9fp7w3_60">Responsibility is the duty or role of a class in an application. A class might have a</p><ul class="list _bullet" id="-9fp7w3_61"><li class="list__item" id="-9fp7w3_76"><p id="-9fp7w3_79">knowing responsibility - it knows something about the domain (for example a Product class in an e-commerce system knows about product code, name, description and price).</p></li><li class="list__item" id="-9fp7w3_77"><p id="-9fp7w3_80">service responsibility - it provides a service to other classes (for example a TaxCalculator class in an e-commerce system provides a service to calculate tax on a monetary amount).</p></li><li class="list__item" id="-9fp7w3_78"><p id="-9fp7w3_81">controlling responsibility - it controls the flow of an operation (for example a CheckoutController class in an e-commerce system controls the sequence of operations when a customer checks out).</p></li></ul><p id="-9fp7w3_62">A class with a single responsibility has one reason to change. A class with multiple responsibilities has multiple reasons to change.</p><p id="-9fp7w3_63">The smaller the number of responsibilities (ideally one) then more likely it is that all the members of a class related to each and are working towards the same goal - <span class="control" id="-9fp7w3_82">high cohesion</span>.</p><p id="-9fp7w3_64">We can now refine our discussion about why giving classes a single responsibility is important.</p><ul class="list _bullet" id="-9fp7w3_65"><li class="list__item" id="-9fp7w3_83"><p id="-9fp7w3_87">We said that the problem with classes that take on multiple responsibilities is that this makes the class more likely to require change (more responsibilities = more chance of requiring a change as the overall system evolves).</p></li><li class="list__item" id="-9fp7w3_84"><p id="-9fp7w3_88">A multi-responsibility class is not only more likely to need change, but the consequences of the change are likely to be greater because a multi-responsibility class will have more clients and a larger quantity of code that is coupled to the multi-responsibility class. The change will cause a greater &quot;ripple effect&quot; in the rest of the code base.</p></li><li class="list__item" id="-9fp7w3_85"><p id="-9fp7w3_89">A single responsibility class is more likely to limit the effect of changes (improves modularity).</p></li><li class="list__item" id="-9fp7w3_86"><p id="-9fp7w3_90">A single responsibility class is easier to understand because it just has one role in the program and has fewer lines of code (improves analysability).</p></li></ul><p id="-9fp7w3_66">The SRP sounds a simple principle, but it is hard to identify and assign responsibilities into classes.</p><p id="-9fp7w3_67">There is a tendency when coding to add functionality to classes we already have, rather than asking if this is a separate responsibility. We also have many technical, cross-cutting concerns to deal with when producing real systems.</p><p id="-9fp7w3_68">Making sure your classes have as few responsibilities as possible is an iterative process which requires a critical look at what you have written (see - <span id="-9fp7w3_91">Design Thinking - OODA Loops</span> for one way to do this), and deciding if your class does, in fact, violate the SRP. If your class does violate SRP, then you need to refactor into multiple classes.</p><p id="-9fp7w3_69">The code patterns we have seen so far are useful in terms of giving you somewhere to move responsibilities to.</p><ul class="list _bullet" id="-9fp7w3_70"><li class="list__item" id="-9fp7w3_92"><p id="-9fp7w3_97">Value Objects have responsibility for managing everything about a value. For example, a Money class might be responsible for handling currency representation, formatting, and currency conversions. A Money class prevent those responsibilities from being scattered across other parts of your codebase.</p></li><li class="list__item" id="-9fp7w3_93"><p id="-9fp7w3_98">The Strategy and Bridge patterns helped us encapsulate an algorithm (such as a tax calculation) so that we can handle variations by writing new classes. But in to doing that we have also moved the responsibility for tax calculation from our main class into a separate class.</p></li><li class="list__item" id="-9fp7w3_94"><p id="-9fp7w3_99">Factory patterns move responsibility for class instantiation or object lifetime into separate Factory classes.</p></li><li class="list__item" id="-9fp7w3_95"><p id="-9fp7w3_100">The Decorator and Chain of Responsibility Patterns allow us to move common responsibilities such as logging or checking authorisation (cross-cutting concerns) into separate classes.</p></li><li class="list__item" id="-9fp7w3_96"><p id="-9fp7w3_101">The Observer Pattern allows to move unrelated consequences of an operation into separate observer classes.</p></li></ul></section><section class="chapter"><h2 id="the-interface-segregation-principle-isp" data-toc="the-interface-segregation-principle-isp">The Interface Segregation Principle (ISP)</h2><p id="-9fp7w3_102">Sometimes you cannot help but end up with a large class with a lot of features. You have a lot of different client classes that only use a subset of these features. Unfortunately this means each client has a coupling to all the available public methods of the big class.</p><div class="code-block" data-lang="java">
+class BigClass
+{
+    public void methodA();
+    public void methodB();
+    //...
+    public void methodY();
+    public void methodZ();
+}
+
+class ClientClass1
+{
+    public void doSomething(BigClass bigClass)
+    {
+        //Client only depends on methodA and methodB, but has access to all the other methods of BigClass
+        bigClass.methodA();
+        bigClass.methodB();
+    }
+}
+class ClientClass2
+{
+    public void doSomethingElse(BigClass bigClass)
+    {
+       //Client only depends on methodX and methodY, but has access to all the other methods of BigClass
+        bigClass.methodY();
+        bigClass.methodZ();
+    }
+}
+</div><p id="-9fp7w3_104">Clients should only need to depend on the properties and methods they call. We can break up this coupling by segregating the interface of BigClass into smaller interfaces, each interface becomes client-specific and only contains a subset of methods.</p><div class="code-block" data-lang="java">
+interface Interface1
+{
+    public void methodA();
+    public void methodB();
+}
+
+interface Interface2
+{
+    public void methodY();
+    public void methodZ();
+}
+
+class BigClass implements Interface1, Interface2
+{
+    public void methodA();
+    public void methodB();
+    ...
+    public void methodY();
+    public void methodZ();
+}
+
+class ClientClass1
+{
+    public void doSomething(Interface1 smallInterface)
+    {
+        //Client can only depend methodA and methodB, has NO access to all the other methods of BigClass
+        smallInterface.methodA();
+        smallInterface.methodB();
+    }
+}
+class ClientClass2
+{
+    public void doSomethingElse(Interface2 smallInterface)
+    {
+        //Client can only depend on methodX and methodY
+        bigClass.methodY();
+        bigClass.methodZ();
+    }
+}
+
+//Usage
+
+BigClass bigClass = new BigClass();
+
+ClientClass1 client1 = new ClientClass1();
+client1.doSomething(bigClass); //Although we use an instance of BigClass, the implementation of doSomething can only see methods of Interface1
+
+ClientClass2 client2 = new ClientClass2();
+client2.doSomething(bigClass); //Although we use an instance of BigClass, the implementation of doSomething can only see methods of Interface2
+</div><p id="-9fp7w3_106">Not only have we restricted the visibility of BigClass methods, but we can also break up BigClass into other classes that implement Interface1 and Interface2 at some point in the future without having to change Client1 or Client2.</p></section><section class="chapter"><h2 id="writing-small-classes-with-short-methods" data-toc="writing-small-classes-with-short-methods">Writing Small Classes with Short Methods</h2><p id="-9fp7w3_107">Although there will always be exceptions, aim for writing small classes with small methods.</p><ul class="list _bullet" id="-9fp7w3_108"><li class="list__item" id="-9fp7w3_109"><p id="-9fp7w3_112">Large, single responsibility may classes benefit from refactoring into multiple classes.</p></li><li class="list__item" id="-9fp7w3_110"><p id="-9fp7w3_113">Long or complex methods need to split into private helper methods.</p></li><li class="list__item" id="-9fp7w3_111"><p id="-9fp7w3_114">Modern IDEs support refactoring your classes with <span class="emphasis" id="-9fp7w3_115">Extract Method</span> or <span class="emphasis" id="-9fp7w3_116">Extract into Class</span> refactoring features (see your IDE documentation).</p></li></ul></section><section class="chapter"><h2 id="don-t-talk-to-strangers-classes-that-aggregate-other-classes" data-toc="don-t-talk-to-strangers-classes-that-aggregate-other-classes">Don't talk to strangers - Classes that aggregate other classes</h2><p id="-9fp7w3_117">In Java, classes have fields, which are either of primitive type or reference types. We know that it is good design practice to hide these fields by making them private and only allowing read or update via the operations defined by the public API.</p><p id="-9fp7w3_118">Some classes have mostly 'knowing' responsibilities - they exist to hold data and have very little behavior. Some classes are mostly behavioral - for example a Facade class (see later) would probably have very few fields (they know very little), its entire responsibility is to provide simple methods that perform complex networks of operations on different classes.</p><p id="-9fp7w3_119">Hiding fields presents a problem for classes whose responsibilities are primarily about holding and exposing data. Take the example of a class holding data about a Product for an eCommerce site. For example, an ecommerce application needs to hold data on a product's code, name and description. In addition, our hypothetical ecommerce system may also put products into Categories (Shirts, Jackets, Dresses, Cushions etc.) and Categories into Departments (Men's, Women's, Homeware etc.).</p><div class="code-block" data-lang="java">
+class Department {
+    private final String code;
+    private final String name;
+
+    Department(String code, String name) {
+        this.code = code;
+        this.name = name;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public String getCode() {
+        return code;
+    }
+}
+
+
+class Category {
+    private final Department department;
+    private final String code;
+    private final String name;
+
+    Category(String code, String name, Department department) {
+        this.department = department;
+        this.code = code;
+        this.name = name;
+    }
+
+    public Department getDepartment() {
+        return department;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public String getCode() {
+        return code;
+    }
+}
+
+class Product
+{
+    private final String code;
+    private final String name;
+    private final String description;
+    private final Category category;
+
+    Product(String code, String name, String description, Category category)
+    {
+        this.code = code;
+        this.name = name;
+        this.description = description;
+        this.category = category;
+    }
+
+    String getCode() {
+        return code;
+    }
+
+    String getName() {
+        return name;
+    }
+
+    String getDescription() {
+        return description;
+    }
+
+    Category getCategory() {
+        return category;
+    }
+}
+</div><p id="-9fp7w3_121">There are a couple of observations to make about the Product class. Although we provided getters for all the fields, we are still exposing a lot of internal structure. This is inevitable because we <span class="emphasis" id="-9fp7w3_141">need</span> to expose that information to a client. For example</p><div class="code-block" data-lang="java">
+Product product = new Product(...)
+String productCode  = product.getCode();
+String productDescription  = product.getDescription();
+</div><p id="-9fp7w3_123">But for a client to display the category and department, the client code needs to access a chain of objects</p><div class="code-block" data-lang="java">
+Product product = new Product(...)
+String departmentName = product.getCategory().getDepartment().getName();
+</div><p id="-9fp7w3_125">The problem here is that the client is not only dependent on Product, but also dependent on the Category class, which is in turn dependent on Department class. Our client code is now dependent on three classes instead of just Product. The author of the client code needs to read the API documentation for three classes rather than one.</p><p id="-9fp7w3_126">How much of a problem this is going to be depends on how likely Category and Department are to change. Note that we have baked in the decision that the Department that a Product belongs to is determined by the Category (the Category class aggregates and exposes an instance of the Department class in this design). That will be a problem if later on we want to set a Product's Department independently of its Category. We have made assumptions about <span class="emphasis" id="-9fp7w3_142">structure</span>.</p><p id="-9fp7w3_127">Generally, the more the client code has to traverse a chain of objects, the more brittle the client code is going to be under change. This line of code <code class="code" id="-9fp7w3_143">String departmentName = product.getCategory().getDepartment().getName();</code> relies on the structure of Product and the Structure of Category remaining constant.</p><p id="-9fp7w3_128">The design solution is to not expose these assumptions and provide a public API for Product that hides the Category and Department structure. If there are changes to the Category and Department class structure, we can deal with that change in one place rather than breaking all the clients. We write wrapper methods around the aggregated Category and Department classes to hide the structure.</p><div class="code-block" data-lang="java">
+class BetterCategory {
+    private final Department department;
+    private final String code;
+    private final String name;
+
+    BetterCategory(String code, String name, Department department) {
+        this.department = department;
+        this.code = code;
+        this.name = name;
+    }
+
+    public String getDepartmentName() {
+        return department.getName();
+    }
+    public String getDepartmentCode() {
+        return department.getCode();
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public String getCode() {
+        return code;
+    }
+}
+
+class BetterProduct
+{
+    private final String code;
+    private final String name;
+    private final String description;
+    private final BetterCategory category;
+
+    BetterProduct(String code, String name, String description, BetterCategory category)
+    {
+        this.code = code;
+        this.name = name;
+        this.description = description;
+        this.category = category;
+    }
+
+    String getCode() {
+        return code;
+    }
+
+    String getName() {
+        return name;
+    }
+
+    String getDescription() {
+        return description;
+    }
+
+    String  getCategoryCode() {
+        return category.getCode();
+    }
+
+    String  getCategoryName() {
+        return category.getName();
+    }
+
+    String  getDepartmentCode () {
+        return category.getDepartmentCode();
+    }
+
+    String  getDepartmentName () {
+        return category.getDepartmentName();
+    }
+}
+
+</div><p id="-9fp7w3_130">This is another design principle, called <span class="control" id="-9fp7w3_144">Don't talk to Strangers</span> or more formally <span class="control" id="-9fp7w3_145">The Law of Demeter</span>, even though it is a principle rather than a law. The principle is that classes should not expose the other classes they aggregate (like the <code class="code" id="-9fp7w3_146">Category getCategory()</code> method in the example) because this exposes structure.</p><p id="-9fp7w3_131">Put more fully, a method should only call:</p><ul class="list _bullet" id="-9fp7w3_132"><li class="list__item" id="-9fp7w3_147"><p id="-9fp7w3_152">Methods of the class the method is defined in.</p></li><li class="list__item" id="-9fp7w3_148"><p id="-9fp7w3_153">Methods of objects held in fields within the class the method is defined in.</p></li><li class="list__item" id="-9fp7w3_149"><p id="-9fp7w3_154">Methods of objects held in collections within the class the method is defined in.</p></li><li class="list__item" id="-9fp7w3_150"><p id="-9fp7w3_155">Methods of objects passed as parameters to the method.</p></li><li class="list__item" id="-9fp7w3_151"><p id="-9fp7w3_156">Methods of any objects it instantiates.</p></li></ul><p id="-9fp7w3_133">Any of the methods listed above are <span class="emphasis" id="-9fp7w3_157">familiars</span> rather than <span class="emphasis" id="-9fp7w3_158">strangers</span>. Talk to familiars, don't talk to strangers.</p><p id="-9fp7w3_134">In the example above,</p><div class="code-block" data-lang="java">
+//Code instantiates the Product object, so OK to call methods of Product
+Product product = new Product(...)
+//getCategory is a method of Product, but getName() isn't a method of Product, here we are talking to a Stranger
+String categoryName = product.getCategory().getName();
+</div><p id="-9fp7w3_136">We have used getters in the example, but the principle applies to reaching any method, for example:</p><div class="code-block" data-lang="java">
+ClassA a = new ClassA();
+a.getB().getC().doZ();
+</div><p id="-9fp7w3_138">It is better to provide a doZ() operation on the API for ClassB and ClassA, rather than exposing the intermediate structure.</p><div class="code-block" data-lang="java">
+public class ClassB {
+
+    private final ClassC c = new ClassC();
+
+    void doZ()
+    {
+        c.doZ();
+    }
+}
+
+class ClassA {
+
+    private final ClassB b = new ClassB();
+    public void doZ()
+    {
+        b.doZ();
+    }
+}
+
+ClassA a = new ClassA();
+a.doZ();
+</div><aside class="prompt" data-type="tip" data-title="" id="-9fp7w3_140"><p id="-9fp7w3_159">☑ The 'Don't talk to Strangers' principle is a good idea but does increase the size of a class API - if you do expose aggregated classes on your public API, ensure this is justified, and not just being lazy because you can't be bothered to write some wrapper methods. Bock (no date) has further discussion on when and how to apply the principle.</p></aside></section><section class="chapter"><h2 id="increase-testability-by-depending-on-interfaces-rather-than-concrete-classes" data-toc="increase-testability-by-depending-on-interfaces-rather-than-concrete-classes">Increase testability by depending on interfaces rather than concrete classes</h2><p id="-9fp7w3_160">If classes can be tested then they become more maintainable simply because it is easier to create and maintain a comprehensive suite of tests that we can run every time was make a change. But what do we mean by making classes more testable?</p><p id="-9fp7w3_161">Recall that when one class calls a member of another class, the class making the call is the <span class="control" id="-9fp7w3_197">client class</span> and the class being used is a <span class="control" id="-9fp7w3_198">supplier class</span>.</p><p id="-9fp7w3_162">We have said that when a client class calls makes use of a supplier class then the client class takes a <span class="control" id="-9fp7w3_199">dependency</span> on the supplier class. For example:</p><div class="code-block" data-lang="java">
+class SupplierClass
+{
+    public void DoSomethingElse()
+    {
+      //implementation
+    }
+}
+
+
+class ClientClass
+{
+    private final Supplier supplier = new Supplier();
+
+    public void DoSomething()
+    {
+     //make a call to a method on the supplier class
+     supplier.DoSomethingElse();
+    }
+
+}
+</div><p id="-9fp7w3_164">In this example the ClientClass has a dependency on the concrete SupplierClass.</p><p id="-9fp7w3_165">Going back to our E-Commerce example, assume that having put products into an e-commerce basket, we want to take payment via a credit card.</p><aside class="prompt" data-type="tip" data-title="" id="-9fp7w3_166"><p id="-9fp7w3_200">In a real service we would create a ValueObject representing a CreditCard that validated and held the card number and expiry properties</p></aside><div class="code-block" data-lang="java">
+class RealCreditCardService {
+
+    public RealCreditCardService() {
+    }
+
+    public void takePayment(double amount, String cardNumber, int expiryYear, int expiryMonth) {
+        // Actually charge card through integration with payment processor
+    }
+}
+
+
+
+class Basket {
+
+    final RealCreditCardService creditCardService;
+
+    public Basket() {
+        this.creditCardService = new RealCreditCardService();
+    }
+
+    double getTotal() {
+        //Get sum total of goods, tax and delivery
+        return 100.0d;
+    }
+
+    public void chargeCreditCard(String cardNumber, int expiryYear, int expiryMonth) {
+        creditCardService.takePayment(getTotal(), cardNumber, expiryYear, expiryMonth);
+    }
+}
+</div><p id="-9fp7w3_168">We would create a basket as part of our process in our website code.</p><div class="code-block" data-lang="java">
+Basket basket = new Basket();
+//put things in basket
+//ask customer for credit card info
+basket.chargeCreditCard(&quot; 4111 1111 1111 1111&quot;, 2028, 12);
+
+</div><p id="-9fp7w3_170">Note how the dependencies match the natural order of the calls:</p><p id="-9fp7w3_171"><code class="code" id="-9fp7w3_201">Website (the outmost controlling thing) -&gt; Basket -&gt; CreditCardService</code></p><p id="-9fp7w3_172">However, the problem comes when we want to write tests for the Basket class. The Basket has a dependency on a concrete class implementing an integration with a real credit card processor. Every time we test the checkout process, we will require a real credit card, and if we run enough tests we will use up all the credit available on the credit card. My Basket class is not very <span class="control" id="-9fp7w3_202">testable</span> because of its dependencies.</p><p id="-9fp7w3_173">We can make our classes more <span class="control" id="-9fp7w3_203">testable</span> by making the client depend on an <code class="code" id="-9fp7w3_204">interface</code>. When we create the dependency as an interface rather than using a concrete class, we postpone the decision as to what concrete class we are going to use as the supplier. This is invaluable in testing because:</p><ol class="list _decimal" id="-9fp7w3_174" type="1"><li class="list__item" id="-9fp7w3_205"><p id="-9fp7w3_207">You are no longer having to provide real credit card data and end up charging real credit cards.</p></li><li class="list__item" id="-9fp7w3_206"><p id="-9fp7w3_208">You can write different test-specific concrete classes and use them to support various test scenarios.</p></li></ol><p id="-9fp7w3_175">The first step is for the client (in this case the Basket) to define the interface it wants to depend on.</p><div class="code-block" data-lang="java">
+interface AbstractCreditCardService {
+     void takePayment(double amount, String cardNumber, int expiryYear, int expiryMonth);
+}
+</div><p id="-9fp7w3_177">Basket now depends on the interface rather than a concrete class.</p><div class="code-block" data-lang="java">
+class Basket {
+
+    final AbstractCreditCardService creditCardService;
+
+    public Basket(AbstractCreditCardService creditCardService) {
+
+        this.creditCardService = creditCardService;
+    }
+
+    double getTotal() {
+        //Get sum total of goods, tax and delivery
+        return 100.0d;
+    }
+
+    public void chargeCreditCard(String cardNumber, int expiryYear, int expiryMonth) {
+        creditCardService.takePayment(getTotal(), cardNumber, expiryYear, expiryMonth);
+    }
+}
+</div><p id="-9fp7w3_179">In the production code, we will use a concrete instance of ReadCreditCardService as the supplier.</p><div class="code-block" data-lang="java">
+class RealCreditCardService implements AbstractCreditCardService {
+
+    public RealCreditCardService() {
+    }
+
+    public void takePayment(double amount, String cardNumber, int expiryYear, int expiryMonth) {
+        // Actually charge card through integration with payment processor
+    }
+}
+</div><p id="-9fp7w3_181">but when testing we can create a Basket class using test classes which (for example) mimic failed or successful payments.</p><div class="code-block" data-lang="java">
+
+class FailingCreditCardService implements AbstractCreditCardService {
+
+    @Override
+    public void takePayment(double amount, String cardNumber, int expiryYear, int expiryMonth) {
+        //simulate a failed attempt to take payment
+    }
+}
+
+class SucceedingCreditCardService implements AbstractCreditCardService {
+
+    public SucceedingCreditCardService() {
+    }
+
+    public void takePayment(double amount, String cardNumber, int expiryYear, int expiryMonth) {
+        //simulates a successful attempt to take payment
+    }
+}
+</div><p id="-9fp7w3_183">To test, we create an instance of Basket takes whichever concrete class makes sense for the test we are trying to perform.</p><div class="code-block" data-lang="java">
+AbstractCreditCardService testService = new FailingCreditCardService();
+Basket basket = new Basket(testService);
+//put things in basket
+basket.chargeCreditCard(&quot; 4111 1111 1111 1111&quot;, 2028, 12);
+</div><p id="-9fp7w3_185">By making Basket depend on an <code class="code" id="-9fp7w3_209">AbstractCreditCardService</code> we have gained the ability to vary the concrete supplier so that we can support different test cases. If this looks like the <span class="control" id="-9fp7w3_210">Strategy</span> pattern it is - but rather than varying concrete implementations in our production code to deal with variation in algorithm, we are varying concrete implementations to support testing by creating concrete implementations specifically for test scenarios such as the <code class="code" id="-9fp7w3_211">takePayment</code> method call failing.</p><aside class="prompt" data-type="tip" data-title="" id="-9fp7w3_186"><p id="-9fp7w3_212">☑ To make classes more testable, when your class takes a dependency on a concrete class (this could be that the class is holding a reference to a concrete class, or a reference to a concrete class passed as a method parameter) consider replacing the concrete class with an interface. Then you can create different concrete classes that implement that interface to support a variety of test cases.</p></aside><p id="-9fp7w3_187">We only need to do this when the thing we depend upon is going to change. When we consider testability, more of our dependencies become volatile (subject to change) rather than stable because we want to provide test case specific versions of those dependencies. A good example of what would normally be stable but needs to be changed for testing is the use of time.</p><p id="-9fp7w3_188">Going back to our basket <code class="code" id="-9fp7w3_213">takePayment</code> method, we will want to validate the card expiry date provided as month and year. The code might look something like this.</p><div class="code-block" data-lang="java">
+public void takePayment(double amount, String cardNumber, int expiryYear, int expiryMonth) {
+
+    LocalDateTime now = LocalDateTime.now();
+    if (expiryYear &gt; now.getYear() || (expiryYear == now.getYear() &amp;&amp; expiryMonth &gt;= now.getMonthValue())) {
+
+    }
+}
+</div><p id="-9fp7w3_190">The problem here is that my client class (the Basket in this case) has coupled to a concrete supplier class that can only return the time in the local time zone according to the system clock of the machine the code is running. This is fine for production use where we always want to compare against current time, but bad for testing where we want to run tests with where cards pass or fail the expiry check. An analogous situation would arise if we provided a discount code that had an expiry date.</p><p id="-9fp7w3_191">The solution is to replace the concrete class with an interface. To test for credit card expiry we only need a year and month value, so we might call the interface YearMonthProvider. As we did with the CreditCardService, we can now create real and test implementations of the YearMonthProvider interface.</p><div class="code-block" data-lang="java">
+
+interface YearMonthProvider {
+    getYear();
+    getMonth();
+}
+
+
+class TestYearMonthProvider implements YearMonthProvider {
+    private final LocalDate currentDate;
+
+    public TestYearMonthProvider(LocalDate currentDate) {
+        this.currentDate = currentDate;
+    }
+
+    @Override
+    public int getYear() {
+        return currentDate.getYear();
+    }
+
+    @Override
+    public int getMonth() {
+        return currentDate.getMonthValue();
+    }
+}
+
+class RealYearMonthProvider implements YearMonthProvider {
+
+    @Override
+    public int getYear() {
+        return LocalDate.now().getYear();
+    }
+
+    @Override
+    public int getMonth() {
+        return LocalDate.now().getMonthValue();
+    }
+}
+</div><p id="-9fp7w3_193">Usage</p><div class="code-block" data-lang="java">
+public void takePayment(double amount, String cardNumber, int expiryYear, int expiryMonth, YearMonthProvider provider) {
+
+    if (expiryYear &gt; provider.getYear() || (expiryYear == provider.getYear() &amp;&amp; expiryMonth &gt;= provider.getMonthValue())) {
+
+    }
+}
+</div><p id="-9fp7w3_195">There is an industry term <span class="control" id="-9fp7w3_214">flaky tests</span> for tests that sometimes pass and sometimes fail when the code under test has not changed. The cause is often that the code under test has a dependency on something that is <span class="control" id="-9fp7w3_215">non-deterministic</span> - has different behavior every time you run the test. Common sources of non-deterministic behavior are looking up time, looking up some form of system configuration and use of random numbers.</p><aside class="prompt" data-type="tip" data-title="" id="-9fp7w3_196"><p id="-9fp7w3_216">☠ Do not take dependencies on concrete classes that have <span class="control" id="-9fp7w3_217">non-deterministic</span> behavior - time being a good example. Always create a provider interface so that you can substitute the real non-deterministic thing for a provider under your control.</p></aside></section><section class="chapter"><h2 id="the-dependency-inversion-principle-dip" data-toc="the-dependency-inversion-principle-dip">The Dependency Inversion Principle (DIP)</h2><p id="-9fp7w3_218">A simple interpretation of the Dependency Inversion Principle is that clients should depend on an <code class="code" id="-9fp7w3_227">interface</code> or <code class="code" id="-9fp7w3_228">abstract</code> classes rather than concrete classes. When a client depends on an interface then it is not coupled to any particular supplier, so we can change the concrete supplier at runtime - very useful for handling variation in algorithms (which we saw with the Strategy pattern) and substituting test versions in testing scenarios.</p><p id="-9fp7w3_219">When a client uses (depends on) a concrete supplier, the API the client uses is defined by the supplier - the client is <span class="emphasis" id="-9fp7w3_229">forced</span> to use the supplier's API. When we change this so that the client uses (depends on) an interface it is the client that defines the interface that it needs, and it is now the supplier class that is forced to use the client's interface declaration.</p><p id="-9fp7w3_220">It is this inversion of the direction of the dependency that gives the principle its name. In our example the definition of <code class="code" id="-9fp7w3_230">AbstractCreditCardService</code> is controlled by the client (in this case a Basket) because it is the Basket that determines the requirements for the interface. Now instead of the Basket having a dependency on <code class="code" id="-9fp7w3_231">RealCreditCardService</code>, <code class="code" id="-9fp7w3_232">RealCreditCardService</code> and all the other concrete implementations depend on <code class="code" id="-9fp7w3_233">AbstractCreditCardService</code>, so now the suppliers depend on the client, rather than the other way around. The normal dependency relationship is inverted.</p><p id="-9fp7w3_221">This applies not only to individual classes but to Java packages as well. If I have a concrete dependency from Basket to RealCreditCardService, the Java package containing the <code class="code" id="-9fp7w3_234">Basket</code> class has a concrete dependency on the package containing the <code class="code" id="-9fp7w3_235">RealCreditCardService</code> class. You know you have a package dependency where you see an <code class="code" id="-9fp7w3_236">import</code> statement or a fully qualified class name. If we invert the dependencies then the package with the <code class="code" id="-9fp7w3_237">RealCreditCardService</code> depends on the package containing the <code class="code" id="-9fp7w3_238">Basket</code> class. This means we can have different packages for real and test implementations of the <code class="code" id="-9fp7w3_239">AbstractCreditCardService</code> interface, which keeps the two codebases separated. We can swap between real and test implementations by swapping Java packages.</p><p id="-9fp7w3_222">The full definition of the Dependency Inversion Principle is in Martin and Martin (2007 p 154):</p><ul class="list _bullet" id="-9fp7w3_223"><li class="list__item" id="-9fp7w3_240"><p id="-9fp7w3_242">High-level modules should not depend on low-level modules. Instead, they should depend on abstractions.</p></li><li class="list__item" id="-9fp7w3_241"><p id="-9fp7w3_243">Abstractions should not depend on details. Details should depend on abstractions.</p></li></ul><p id="-9fp7w3_224">In the first sentence and in our context, module means Java class or package. High-level and low-level are the positions in the call chain. In the example without dependency inversion a method in the <code class="code" id="-9fp7w3_244">Basket</code> class methods on <code class="code" id="-9fp7w3_245">RealCreditCardService</code> - Basket is higher in the call chain. <span class="control" id="-9fp7w3_246">Abstractions</span> mean Java interfaces or abstract classes. By introducing AbstractCreditCardService both <code class="code" id="-9fp7w3_247">Basket</code> and <code class="code" id="-9fp7w3_248">RealCreditCardService</code> now depend on the abstract <code class="code" id="-9fp7w3_249">AbstractCreditCardService</code> interface.</p><p id="-9fp7w3_225">The second sentence is a way of saying that the abstraction we make (in Java the <code class="code" id="-9fp7w3_250">interface</code> we design) should not be influenced by implementation detail, instead the implementation detail should depend on the abstraction we have designed. Take the example where we tested the credit card expiry date. The general idea is that we confirm the credit card date is valid, but the initial implementation was very coupled and dependent on a specific way of doing this using the <code class="code" id="-9fp7w3_251">LocalDateTime</code> class (the detail). The idea of testing a credit card expiry date only really needs a year and month value which is reflected in the <code class="code" id="-9fp7w3_252">interface</code>. We now write a detail class that happens to use <code class="code" id="-9fp7w3_253">LocalDateTime</code>, but only exposes the year and month value as required by the abstraction.</p><aside class="prompt" data-type="tip" data-title="" id="-9fp7w3_226"><p id="-9fp7w3_254">⚠ You may also see the principle being explained in terms of <span class="control" id="-9fp7w3_255">Policy</span> and <span class="control" id="-9fp7w3_256">Mechanism</span>, or <span class="control" id="-9fp7w3_257">Policy</span> and <span class="control" id="-9fp7w3_258">Detail</span>. <span class="control" id="-9fp7w3_259">Policy</span> is the same as <span class="control" id="-9fp7w3_260">Abstraction</span> - a Policy class embodies the high-level business rules and goals. <span class="control" id="-9fp7w3_261">Mechanism</span> or <span class="control" id="-9fp7w3_262">Detail</span> means the lower level concrete implementation details.</p></aside></section><section class="chapter"><h2 id="the-adapter-pattern" data-toc="the-adapter-pattern">The Adapter Pattern</h2><p id="-9fp7w3_263">If our higher level modules define Java interfaces, and we want to provide implementations using lower level detail classes such as libraries (including the Java standard library) or other code not under our control, it is highly likely that the API of the lower level detail classes you want to use will not be an exact match for the <code class="code" id="-9fp7w3_283">interface</code> defined by the higher level module.</p><p id="-9fp7w3_264">We can solve this problem using a common design pattern called the <span class="control" id="-9fp7w3_284">Adapter Pattern</span>. The adapter pattern solves the problem when you want to use an existing class, but its API does not match the API you need (Gamma <span class="emphasis" id="-9fp7w3_285">et al.</span> 1994 p139).</p><p id="-9fp7w3_265">Let us for example say that we have a library that contains a class that provides highly accurate real time clock information from some atomic clock source on the internet, but returns the current time as the number of milliseconds since the Unix epoch (Unix represents time as number using 0 to mean January 1, 1970, 00:00:00 UTC).</p><p id="-9fp7w3_266">The API for the class is simple:</p><div class="code-block" data-lang="java">
+class AtomicTimeSource
+{
+    public long getTimeInMs();
+}
+</div><p id="-9fp7w3_268">We want to use this to get the current Year and Month for our credit card validation example, but the interface we require is:</p><div class="code-block" data-lang="java">
+interface YearMonthProvider {
+    int getYear();
+    int getMonth();
+}
+</div><p id="-9fp7w3_270">We write an <span class="control" id="-9fp7w3_286">Adapter</span> class that converts from the API of the AtomicTimeSource to the API expected by our credit card validation.</p><div class="code-block" data-lang="java">
+class AtomicTimeSourceAdapter implements YearMonthProvider {
+
+    private final AtomicTimeSource source;
+
+    public AtomicTimeSourceAdapter(AtomicTimeSource source) {
+        this.source = source;
+    }
+
+
+    @Override
+    public int getYear() {
+        long  timeInMs  = source.getTimeInMs();
+        //logic to convert to year
+        return 0;
+    }
+
+    @Override
+    public int getMonth() {
+        long timeInMs = source.getTimeInMs();
+        //logic to convert to month
+        return 0;
+    }
+}
+</div><p id="-9fp7w3_272">In its general form an <span class="control" id="-9fp7w3_287">Adapter</span> adapts an <span class="control" id="-9fp7w3_288">Adaptee</span> to a <span class="control" id="-9fp7w3_289">Target</span> interface.</p><svg aria-roledescription="classDiagram" role="graphics-document document" viewBox="0 0 262 304"  xmlns="http://www.w3.org/2000/svg" width="262" id="mermaid"><g><defs><marker orient="auto" markerHeight="240" markerWidth="190" refY="7" refX="18" class="marker aggregation classDiagram" id="mermaid_classDiagram-aggregationStart"><path d="M 18,7 L9,13 L1,7 L9,1 Z"></path></marker></defs><defs><marker orient="auto" markerHeight="28" markerWidth="20" refY="7" refX="1" class="marker aggregation classDiagram" id="mermaid_classDiagram-aggregationEnd"><path d="M 18,7 L9,13 L1,7 L9,1 Z"></path></marker></defs><defs><marker orient="auto" markerHeight="240" markerWidth="190" refY="7" refX="18" class="marker extension classDiagram" id="mermaid_classDiagram-extensionStart"><path d="M 1,7 L18,13 V 1 Z"></path></marker></defs><defs><marker orient="auto" markerHeight="28" markerWidth="20" refY="7" refX="1" class="marker extension classDiagram" id="mermaid_classDiagram-extensionEnd"><path d="M 1,1 V 13 L18,7 Z"></path></marker></defs><defs><marker orient="auto" markerHeight="240" markerWidth="190" refY="7" refX="18" class="marker composition classDiagram" id="mermaid_classDiagram-compositionStart"><path d="M 18,7 L9,13 L1,7 L9,1 Z"></path></marker></defs><defs><marker orient="auto" markerHeight="28" markerWidth="20" refY="7" refX="1" class="marker composition classDiagram" id="mermaid_classDiagram-compositionEnd"><path d="M 18,7 L9,13 L1,7 L9,1 Z"></path></marker></defs><defs><marker orient="auto" markerHeight="240" markerWidth="190" refY="7" refX="6" class="marker dependency classDiagram" id="mermaid_classDiagram-dependencyStart"><path d="M 5,7 L9,13 L1,7 L9,1 Z"></path></marker></defs><defs><marker orient="auto" markerHeight="28" markerWidth="20" refY="7" refX="13" class="marker dependency classDiagram" id="mermaid_classDiagram-dependencyEnd"><path d="M 18,7 L9,13 L14,7 L9,1 Z"></path></marker></defs><defs><marker orient="auto" markerHeight="240" markerWidth="190" refY="7" refX="13" class="marker lollipop classDiagram" id="mermaid_classDiagram-lollipopStart"><circle r="6" cy="7" cx="7" fill="transparent" stroke="black"></circle></marker></defs><defs><marker orient="auto" markerHeight="240" markerWidth="190" refY="7" refX="1" class="marker lollipop classDiagram" id="mermaid_classDiagram-lollipopEnd"><circle r="6" cy="7" cx="7" fill="transparent" stroke="black"></circle></marker></defs><g class="root"><g class="clusters"></g><g class="edgePaths"><path marker-end="url(#mermaid_classDiagram-extensionEnd)" style="fill:none" class="edge-pattern-dashed relation" id="id_Adapter_Target_1" d="M77.112,127L73.463,131.167C69.814,135.333,62.517,143.667,58.868,149C55.219,154.333,55.219,156.667,55.219,157.833L55.219,159"></path><path style="fill:none" class="edge-pattern-dashed relation" id="id_Adapter_Adaptee_2" d="M181.325,127L184.974,131.167C188.623,135.333,195.921,143.667,199.57,154.333C203.219,165,203.219,178,203.219,184.5L203.219,191"></path></g><g class="edgeLabels"><g class="edgeLabel"><g transform="translate(0, 0)" class="label"><foreignObject height="0" width="0"><div style="display: inline-block; white-space: nowrap;" xmlns="http://www.w3.org/1999/xhtml"><span class="edgeLabel"></span></div></foreignObject></g></g><g class="edgeLabel"><g transform="translate(0, 0)" class="label"><foreignObject height="0" width="0"><div style="display: inline-block; white-space: nowrap;" xmlns="http://www.w3.org/1999/xhtml"><span class="edgeLabel"></span></div></foreignObject></g></g></g><g class="nodes"><g transform="translate(55.21875, 236.5)" id="classId-Target-54" class="node default"><rect height="119" width="94.4375" y="-59.5" x="-47.21875" class="outer title-state" style=""></rect><line y2="4.5" y1="4.5" x2="47.21875" x1="-47.21875" class="divider"></line><line y2="20.5" y1="20.5" x2="47.21875" x1="-47.21875" class="divider"></line><g class="label"><foreignObject transform="translate( -39.71875, -52)" height="24" width="79.4375"><div style="display: inline-block; white-space: nowrap;" xmlns="http://www.w3.org/1999/xhtml"><span class="nodeLabel">«interface»</span></div></foreignObject><foreignObject transform="translate( -23.9296875, -24)" height="24" width="47.859375" class="classTitle"><div style="display: inline-block; white-space: nowrap;" xmlns="http://www.w3.org/1999/xhtml"><span class="nodeLabel">Target</span></div></foreignObject><foreignObject transform="translate( -39.71875, 28)" height="24" width="77.640625"><div style="display: inline-block; white-space: nowrap;" xmlns="http://www.w3.org/1999/xhtml"><span class="nodeLabel">operation()</span></div></foreignObject></g></g><g transform="translate(203.21875, 236.5)" id="classId-Adaptee-55" class="node default"><rect height="91" width="101.5625" y="-45.5" x="-50.78125" class="outer title-state" style=""></rect><line y2="-9.5" y1="-9.5" x2="50.78125" x1="-50.78125" class="divider"></line><line y2="6.5" y1="6.5" x2="50.78125" x1="-50.78125" class="divider"></line><g class="label"><foreignObject height="0" width="0"><div style="display: inline-block; white-space: nowrap;" xmlns="http://www.w3.org/1999/xhtml"><span class="nodeLabel"></span></div></foreignObject><foreignObject transform="translate( -31.6484375, -38)" height="24" width="63.296875" class="classTitle"><div style="display: inline-block; white-space: nowrap;" xmlns="http://www.w3.org/1999/xhtml"><span class="nodeLabel">Adaptee</span></div></foreignObject><foreignObject transform="translate( -43.28125, 14)" height="24" width="86.5625"><div style="display: inline-block; white-space: nowrap;" xmlns="http://www.w3.org/1999/xhtml"><span class="nodeLabel">operation2()</span></div></foreignObject></g></g><g transform="translate(129.21875, 67.5)" id="classId-Adapter-56" class="node default"><rect height="119" width="137.265625" y="-59.5" x="-68.6328125" class="outer title-state" style=""></rect><line y2="-23.5" y1="-23.5" x2="68.6328125" x1="-68.6328125" class="divider"></line><line y2="20.5" y1="20.5" x2="68.6328125" x1="-68.6328125" class="divider"></line><g class="label"><foreignObject height="0" width="0"><div style="display: inline-block; white-space: nowrap;" xmlns="http://www.w3.org/1999/xhtml"><span class="nodeLabel"></span></div></foreignObject><foreignObject transform="translate( -30.3125, -52)" height="24" width="60.625" class="classTitle"><div style="display: inline-block; white-space: nowrap;" xmlns="http://www.w3.org/1999/xhtml"><span class="nodeLabel">Adapter</span></div></foreignObject><foreignObject transform="translate( -61.1328125, -12)" height="24" width="122.265625"><div style="display: inline-block; white-space: nowrap;" xmlns="http://www.w3.org/1999/xhtml"><span class="nodeLabel">Adaptee adaptee</span></div></foreignObject><foreignObject transform="translate( -61.1328125, 28)" height="24" width="77.640625"><div style="display: inline-block; white-space: nowrap;" xmlns="http://www.w3.org/1999/xhtml"><span class="nodeLabel">operation()</span></div></foreignObject></g></g></g></g></g></svg><p id="-9fp7w3_274">Start with the Target interface - in this example the interface has a single method <code class="code" id="-9fp7w3_290">void operation()</code>;</p><div class="code-block" data-lang="java">
+interface Target {
+    void operation();
+}
+</div><p id="-9fp7w3_276">Assume the class we want to adapt is called <code class="code" id="-9fp7w3_291">Adapatee</code> and has a single method <code class="code" id="-9fp7w3_292">void operation2()</code>;</p><div class="code-block" data-lang="java">
+class Adaptee {
+     public void operation2() {
+        //actual operation
+    }
+}
+</div><p id="-9fp7w3_278">Create an adapter that aggregates the adaptee, as we saw with the Decorator. The adapter will always forward on the call to the adaptee, but do whatever is necessary to convert the requested operation into an operation that is legal for the adaptee.</p><div class="code-block" data-lang="java">
+class Adapter implements Target {
+
+    final Adaptee adaptee;
+
+    Adapter(Adaptee adaptee) {
+        this.adaptee = adaptee;
+    }
+
+    @Override
+    public void operation() {
+        //do whatever is necessary to convert the operation() call to a call to operation2() on the adaptee interface
+        adaptee.operation2();
+    }
+}
+</div><p id="-9fp7w3_280">The client calls the adapter, which in turn calls the relevant method(s) on the adaptee.</p><div class="code-block" data-lang="java">
+Adaptee adaptee = new Adaptee();
+Target target = new Adapter(adaptee);
+//ends up calling operation2() on the adaptee
+target.operation();
+</div><p id="-9fp7w3_282">The adapter aggregates the adaptee and implements whatever logic is necessary to convert between the required operations on the target and the available operations of the adaptee.</p></section><div class="last-modified">24 October 2025</div><div data-feedback-placeholder="true"></div><div class="navigation-links _bottom"><a href="commands.html" class="navigation-links__prev">Commands and Composites</a><a href="multiclassdesign02.html" class="navigation-links__next">Design with multiple classes - Patterns for the co-ordination of multiple classes</a></div></article><div id="disqus_thread"></div></div></section></main></div><script src="https://resources.jetbrains.com/writerside/apidoc/6.26.0-b913/app.js"></script></body></html>

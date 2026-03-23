@@ -1,0 +1,440 @@
+<!DOCTYPE html SYSTEM "about:legacy-compat">
+<html lang="en-US" data-preset="contrast" data-primary-color="#307FFF"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="robots" content="noindex"><meta name="built-on" content="2026-03-23T15:44:20.423671232"><title>Patterns for creating objects | Software Design and Architecture</title><script type="application/json" id="virtual-toc-data">[{"id":"new-objects-and-constructors","level":0,"title":"New Objects and Constructors","anchor":"#new-objects-and-constructors"},{"id":"garbage-collection","level":0,"title":"Garbage Collection","anchor":"#garbage-collection"},{"id":"static-fields","level":0,"title":"Static Fields","anchor":"#static-fields"},{"id":"static-methods","level":0,"title":"Static Methods","anchor":"#static-methods"},{"id":"encapsulating-creation-logic-in-a-creation-method","level":0,"title":"Encapsulating creation logic in a creation method","anchor":"#encapsulating-creation-logic-in-a-creation-method"},{"id":"creating-subclasses-of-abstract-products","level":0,"title":"Creating Subclasses of Abstract Products","anchor":"#creating-subclasses-of-abstract-products"},{"id":"the-abstract-factory-pattern","level":0,"title":"The Abstract Factory Pattern","anchor":"#the-abstract-factory-pattern"},{"id":"using-factories-for-caching","level":0,"title":"Using Factories for caching","anchor":"#using-factories-for-caching"},{"id":"factory-method-pattern","level":0,"title":"Factory Method Pattern","anchor":"#factory-method-pattern"},{"id":"general-form-of-the-factory-method-pattern","level":0,"title":"General form of the Factory Method pattern","anchor":"#general-form-of-the-factory-method-pattern"},{"id":"the-template-method-pattern","level":0,"title":"The Template Method Pattern","anchor":"#the-template-method-pattern"}]</script><script type="application/json" id="topic-shortcuts"></script><link href="https://resources.jetbrains.com/writerside/apidoc/6.26.0-b913/app.css" rel="stylesheet"><meta name="msapplication-TileColor" content="#000000"><link rel="apple-touch-icon" sizes="180x180" href="https://jetbrains.com/apple-touch-icon.png"><link rel="icon" type="image/png" sizes="32x32" href="https://jetbrains.com/favicon-32x32.png"><link rel="icon" type="image/png" sizes="16x16" href="https://jetbrains.com/favicon-16x16.png"><meta name="msapplication-TileImage" content="https://resources.jetbrains.com/storage/ui/favicons/mstile-144x144.png"><meta name="msapplication-square70x70logo" content="https://resources.jetbrains.com/storage/ui/favicons/mstile-70x70.png"><meta name="msapplication-square150x150logo" content="https://resources.jetbrains.com/storage/ui/favicons/mstile-150x150.png"><meta name="msapplication-wide310x150logo" content="https://resources.jetbrains.com/storage/ui/favicons/mstile-310x150.png"><meta name="msapplication-square310x310logo" content="https://resources.jetbrains.com/storage/ui/favicons/mstile-310x310.png"><meta name="image" content=""><!-- Open Graph --><meta property="og:title" content="Patterns for creating objects | Software Design and Architecture"><meta property="og:description" content=""><meta property="og:image" content=""><meta property="og:site_name" content="Software Design and Architecture Help"><meta property="og:type" content="website"><meta property="og:locale" content="en_US"><meta property="og:url" content="writerside-documentation/factories.html"><!-- End Open Graph --><!-- Twitter Card --><meta name="twitter:card" content="summary_large_image"><meta name="twitter:site" content=""><meta name="twitter:title" content="Patterns for creating objects | Software Design and Architecture"><meta name="twitter:description" content=""><meta name="twitter:creator" content=""><meta name="twitter:image:src" content=""><!-- End Twitter Card --><!-- Schema.org WebPage --><script type="application/ld+json">{
+    "@context": "http://schema.org",
+    "@type": "WebPage",
+    "@id": "writerside-documentation/factories.html#webpage",
+    "url": "writerside-documentation/factories.html",
+    "name": "Patterns for creating objects | Software Design and Architecture",
+    "description": "",
+    "image": "",
+    "inLanguage":"en-US"
+}</script><!-- End Schema.org --><!-- Schema.org WebSite --><script type="application/ld+json">{
+    "@type": "WebSite",
+    "@id": "writerside-documentation/#website",
+    "url": "writerside-documentation/",
+    "name": "Software Design and Architecture Help"
+}</script><!-- End Schema.org --></head><body data-id="Factories" data-main-title="Patterns for creating objects" data-article-props="{&quot;seeAlsoStyle&quot;:&quot;links&quot;}" data-template="article" data-breadcrumbs=""><div class="wrapper"><main class="panel _main"><header class="panel__header"><div class="container"><h3>Software Design and Architecture  Help</h3><div class="panel-trigger"></div></div></header><section class="panel__content"><div class="container"><article class="article" data-shortcut-switcher="inactive"><h1 data-toc="Factories" id="Factories.md">Patterns for creating objects</h1><section class="chapter"><h2 id="new-objects-and-constructors" data-toc="new-objects-and-constructors">New Objects and Constructors</h2><p id="veu3g7_14">In Java the standard method for creating an <span class="control" id="veu3g7_20">instance</span> of a class is by using the new operator. For example:</p><div class="code-block" data-lang="java">
+FullPrice fullPrice = new FullPrice(100.0d);
+MinimumPrice minimumPrice = new MinimumPrice(75.0d);
+TaxCalculation standardTax = new StandardTax();
+Product product = new AmazonProduct(new ASIN(&quot;B09P4L33SW&quot;), fullPrice, minimumPrice, standardTax);
+</div><p id="veu3g7_16">Example the code <code class="code" id="veu3g7_21">FullPrice fullPrice = new FullPrice(100.0d);</code> is a <span class="control" id="veu3g7_22">class instance creation expression</span> (in this case) creating a new instance of the FullPrice class.</p><p id="veu3g7_17">Conceptually, when this line of code is executed:</p><ol class="list _decimal" id="veu3g7_18" type="1"><li class="list__item" id="veu3g7_23"><p id="veu3g7_27">Memory is allocated for the new class instance and all its fields. This means all the fields declared by the class and all the fields declared in its superclass(es) if the class. Our code assumes that there will be enough memory available - there isn&rsquo;t a way to test if there is sufficient memory before calling new to create an object because the Java Virtual Machine (JVM) manages memory allocation and de-allocation dynamically and automatically. If it turns out there isn&rsquo;t enough memory to allocate for a new object, the JVM will throw an <code class="code" id="veu3g7_28">OutOfMemoryError</code>.</p></li><li class="list__item" id="veu3g7_24"><p id="veu3g7_29">As each new field instance is created, it is initialized to its default value (we discussed the default values for primitive types earlier, and recall that the default value for reference types is <code class="code" id="veu3g7_30">null</code>).</p></li><li class="list__item" id="veu3g7_25"><p id="veu3g7_31">Then a <span class="control" id="veu3g7_32">Constructor</span> is invoked. A Constructor is a special method which has the same name as the class. Like methods, constructors can be overloaded by providing different signatures. The specific Constructor used depends on the signature (the number and type of the parameters). The role of Constructor is to initialise any the fields belonging to the class that we want to have a non-default value. The constructors in the superclass(es) do the same for any fields belonging to the superclass(es). Invoking a constructor results in invoking at least one constructor for each superclass.</p></li><li class="list__item" id="veu3g7_26"><p id="veu3g7_33">The value of a class instance creation expression is a <span class="control" id="veu3g7_34">reference</span> to the newly created object of the specified class. In this case the variable <code class="code" id="veu3g7_35">fullPrice</code> is holding the reference. You can think of a reference as holding the memory address of the object (although you cannot directly access the underlying memory through the reference). When you perform operations using a reference the runtime is responsible for performing the operations on the correct memory locations. This is why when you copy a reference, you don't create a copy of the object, all you are doing is creating another variable holding the same memory address.</p></li></ol><p id="veu3g7_19">The more complex example shown above is creating instance of AmazonProduct. In this case sufficient memory will need to allocated for references to the ASIN object, the FullPrice object, the MinimumPrice object and the StandardTax object.</p></section><section class="chapter"><h2 id="garbage-collection" data-toc="garbage-collection">Garbage Collection</h2><p id="veu3g7_36">If we hold on to at least one reference to the object, the Java Virtual Machine (JVM) will keep the object in memory. But when all the variables holding the reference go out of scope or are set to <code class="code" id="veu3g7_44">null</code> then the object becomes unreachable (there are no references to the memory in the program) and becomes the object becomes a candidate for <span class="control" id="veu3g7_45">Garbage Collection</span>.</p><p id="veu3g7_37">Any unreachable objects are taking up memory that cannot be used for new objects until the unreachable memory is reclaimed (the object is said to be destroyed). Every now and again the JVM stops your program execution and the JVM finds all the unreachable objects and reclaims the memory. The benefit of Garbage Collection is that memory that is no longer used is constantly being reclaimed without you having to think very much about it or write code for memory management.</p><p id="veu3g7_38">This doesn't mean you can entirely forget about memory management. Creating large objects such as big arrays or lists and keeping references to them longer than necessary would be an example of poor memory management. Creating large static objects also consumes memory (memory used by static variables cannot be garbage collected).</p><p id="veu3g7_39">For example, in the code</p><div class="code-block" data-lang="java">
+FullPrice fullPrice = new FullPrice(100.0d);
+MinimumPrice minimumPrice = new MinimumPrice(75.0d);
+TaxCalculation standardTax = new StandardTax();
+Product product = new AmazonProduct(new ASIN(&quot;B09P4L33SW&quot;), fullPrice, minimumPrice, standardTax);
+</div><p id="veu3g7_41">assuming we have not kept the references to the ASIN, FullPrice, MinimumPrice and TaxCalculation objects somewhere, the only references to these objects will be kept inside the AmazonProduct object. When the AmazonProduct object is garbage collected, then the references to ASIN, FullPrice, MinimumPrice and TaxCalculation objects will become unreachable, so the memory used by those objects can be reclaimed.</p><p id="veu3g7_42">The implementors of Garbage collecting languages such as Java and C# have put a lot of effort into making the process as fast and efficient as possible, but Garbage Collection has a cost, and you cannot predict when the collector will freeze the operation of the program to reclaim space in memory.</p><p id="veu3g7_43">Other languages (the C and C++ languages for example) make the programmer responsible for allocating and freeing memory as part of their program code. The main reason for wanting to take responsibility for memory management is that developer has complete control over when memory is freed - something that is not the case with Garbage Collection.</p></section><section class="chapter"><h2 id="static-fields" data-toc="static-fields">Static Fields</h2><p id="veu3g7_46">In Java, it is possible to declare a field in a class as being <code class="code" id="veu3g7_54">static</code>. If a field is declared static, there is one allocation of memory to the field contents which is referenced via class name. No instances of the class need to be created. <code class="code" id="veu3g7_55">static</code> fields are initialised to their default value and can also be initialised through direct initialisation or an initialisation block. For example, these two initialisations are equivalent.</p><div class="code-block" data-lang="java">
+public class MyClass {
+    public final static int MY_FIELD = 42;
+}
+
+public class MyClass {
+    public final static int MY_FIELD;
+    static {
+        myField = 42;
+    }
+}
+</div><p id="veu3g7_48">Static fields do have a role in design:</p><ul class="list _bullet" id="veu3g7_49"><li class="list__item" id="veu3g7_56"><p id="veu3g7_58">static fields used to hold constant primitive values (and if so use the CONSTANT_NAME naming convention)</p></li><li class="list__item" id="veu3g7_57"><p id="veu3g7_59">static fields used to create a single instance of a readonly class.</p></li></ul><p id="veu3g7_50">In both cases the field must be qualified with the <code class="code" id="veu3g7_60">final</code> keyword to make them read only. The design of any class that is used this way must also be invariant (generally speaking all its fields are <code class="code" id="veu3g7_61">final</code>).</p><p id="veu3g7_51">These are examples of the <span class="control" id="veu3g7_62">Singleton</span> pattern. Singletons are intended to be single primitive value or single object instance within the whole program. The main issue with Singletons is that their state can be updated by any part of the program and by any thread, unless they are immutable.</p><aside class="prompt" data-type="tip" data-title="" id="veu3g7_52"><p id="veu3g7_63">☠ The use of singletons is to be avoided UNLESS they are constants (immutable values or immutable objects).</p></aside><p id="veu3g7_53">Bear in mind that a singleton cannot be garbage collected, because conceptually all static variables belong to a class and not an instance, and that a class has a lifetime from first use to the complete termination of the program.</p></section><section class="chapter"><h2 id="static-methods" data-toc="static-methods">Static Methods</h2><p id="veu3g7_64">A method that is declared <code class="code" id="veu3g7_69">static</code> is called a <span class="control" id="veu3g7_70">static method</span> or a <span class="control" id="veu3g7_71">class method</span>.</p><p id="veu3g7_65">A class method is always invoked <span class="emphasis" id="veu3g7_72">without</span> reference to a particular object (instance), so a class method cannot use instance fields (variables) or methods or the keywords <code class="code" id="veu3g7_73">this</code> and <code class="code" id="veu3g7_74">super</code>.</p><p id="veu3g7_66">A class method can however reference static fields.</p><p id="veu3g7_67">Conversely, a method that is not declared static is called an <span class="control" id="veu3g7_75">instance method</span>.</p><p id="veu3g7_68">Instance methods are always invoked <span class="emphasis" id="veu3g7_76">with</span> reference to a particular object (instance) and can use instance fields and methods, the keywords this and super as well as static fields and methods.</p></section><section class="chapter"><h2 id="encapsulating-creation-logic-in-a-creation-method" data-toc="encapsulating-creation-logic-in-a-creation-method">Encapsulating creation logic in a creation method</h2><p id="veu3g7_77">Our guidance is that constructors should only contain pre-condition tests on constructor parameters and field initialisation. More complex creation logic should be moved into a static helper method.</p><p id="veu3g7_78">For example, we might want to create a GTIN13 instance by parsing a string into the two components required by the GTIN13 constructor. This parsing code could get repeated multiple times in the product - string parsing code has nothing to do with initialising the GTIN fields (so we don't put that code in the constructor) and we want to follow following the DRY principle, so put the string parsing code into a static method that encapsulates all the validation and parsing logic in one place.</p><div class="code-block" data-lang="java">
+
+public final class GTIN13 {
+
+
+    public static GTIN13 parse(String s) throws InvalidException {
+
+        s = requireValidGlobalTradeIdentifierString(s);
+        CompanyPrefix prefix = new CompanyPrefix(Integer.parseInt(s.substring(0, CompanyPrefix.LENGTH)));
+        ItemReference itemReference = new ItemReference(Integer.parseInt(s.substring(CompanyPrefix.LENGTH, LENGTH - 1)));
+        return new GTIN13(prefix, itemReference);
+    }
+
+    public static GTIN13 tryParse(String s)
+    {
+        //could have written this using the conditional operator instead return isValid(s) ? parse(s) : null;
+
+        if(isValid(s)) return parse(s);
+        else return null;
+    }
+}
+
+</div><p id="veu3g7_80">The other thing to note that the second of these creation methods can return <code class="code" id="veu3g7_82">null</code> (something that a constructor cannot do - it either creates an object or throws an exception). We have called the method <code class="code" id="veu3g7_83">tryParse</code> rather than just <code class="code" id="veu3g7_84">parse</code> to indicate it could return <code class="code" id="veu3g7_85">null</code>. Note also that we have two creation methods that have the same parameter lists but different names - something else you cannot do with constructors.</p><aside class="prompt" data-type="tip" data-title="" id="veu3g7_81"><p id="veu3g7_86">☑ Use a static creation method when you want to put complex creation logic in a single place (the Don't Repeat Yourself principle). Although these creation methods can return null, make sure the method name indicates this, as generally we expect creation to either succeed or throw an exception.</p></aside></section><section class="chapter"><h2 id="creating-subclasses-of-abstract-products" data-toc="creating-subclasses-of-abstract-products">Creating Subclasses of Abstract Products</h2><p id="veu3g7_87">In our system now we have concrete <code class="code" id="veu3g7_98">RetailProduct</code> and <code class="code" id="veu3g7_99">AmazonProduct</code> classes which are both subclasses of the abstract <code class="code" id="veu3g7_100">Product</code> class. We have handled the structural variations between RetailProduct and AmazonProduct and clients can work with the common <code class="code" id="veu3g7_101">Product</code> type. But we have a new problem when it comes to deciding which concrete Product class to instantiate.</p><p id="veu3g7_88">We could write a method such as this which takes some form of indicator as to which concrete class is needed.</p><div class="code-block" data-lang="java">
+
+Product create(String type, String id, FullPrice price, MinimumPrice minimumPrice, TaxCalculation taxCalculation)
+{
+    if(type == &quot;Amazon&quot;){
+        return new AmazonProduct(new ASIN(id), ....);
+    }
+    else if (type == &quot;Retail&quot;)
+    {
+        product = new RetailProduct(GTIN13.parse(id), ....);
+    } else {
+
+        //handle error
+    }
+}
+</div><p id="veu3g7_90">As before with the tax type example, adding a new product type requires us to edit and expand the if/then statement (the same need to change or expand would be true if we had used enums and a switch statement instead of strings and an if statement). This means changing the method with the possibility of introducing an error and at the very least require a retesting of all the other options to ensure that they had not been changed accidentally.</p><p id="veu3g7_91">The thing that is varying here is the creation of specific concrete classes. As before we can identify a common interface and encapsulate each different class creation method into an implementation of that interface.</p><p id="veu3g7_92">This is the common interface.</p><div class="code-block" data-lang="java">
+public interface ProductFactory {
+    Product create(String id, FullPrice price, MinimumPrice minimumPrice, TaxCalculation taxCalculation) throws InvalidException;
+}
+</div><p id="veu3g7_94">We can now implement two variations of the interface, on creating an AmazonProduct, the other creating a RetailProduct.</p><div class="code-block" data-lang="java">
+
+public class AmazonProductFactory implements  ProductFactory {
+    public AmazonProduct create(String id, FullPrice price, MinimumPrice minimumPrice, TaxCalculation taxCalculation) throws InvalidException {
+        ASIN asin = new ASIN(id);
+        return new AmazonProduct(asin, price, minimumPrice,taxCalculation);
+    }
+}
+
+public class RetailProductFactory implements  ProductFactory {
+    public RetailProduct create(String id, FullPrice price, MinimumPrice minimumPrice, TaxCalculation taxCalculation) throws InvalidException {
+        CompanyPrefix prefix = new CompanyPrefix(Integer.parseInt(id.substring(0, CompanyPrefix.LENGTH)));
+        ItemReference itemReference = new ItemReference(Integer.parseInt(id.substring(CompanyPrefix.LENGTH, GTIN13.LENGTH - 1)));
+        GTIN13 gtin13 =  new GTIN13(prefix, itemReference);
+        return new RetailProduct(gtin13, price, minimumPrice,taxCalculation);
+    }
+}
+
+</div><p id="veu3g7_96">Now I can instantiate either of these two concrete <span class="control" id="veu3g7_102">factory classes</span> once (probably in the application start up code), and give the factory interface to my client code, and all products created via the ProductFactory interface will be either AmazonProducts or RetailProducts.</p><div class="code-block" data-lang="java">
+Product product = productFactory.create(&quot;705353135569&quot;, fullPrice, minimumPrice, zeroRateTax);
+
+</div></section><section class="chapter"><h2 id="the-abstract-factory-pattern" data-toc="the-abstract-factory-pattern">The Abstract Factory Pattern</h2><p id="veu3g7_103">This pattern is called the <span class="control" id="veu3g7_124">Abstract Factory</span> pattern. The pattern allows a software system to be configured <span class="emphasis" id="veu3g7_125">at runtime</span> to create different concrete classes.</p><p id="veu3g7_104">The general form.</p><svg aria-roledescription="classDiagram" role="graphics-document document" viewBox="0 0 834.34375 276"  xmlns="http://www.w3.org/2000/svg" width="834.34375" id="mermaid"><g><defs><marker orient="auto" markerHeight="240" markerWidth="190" refY="7" refX="18" class="marker aggregation classDiagram" id="mermaid_classDiagram-aggregationStart"><path d="M 18,7 L9,13 L1,7 L9,1 Z"></path></marker></defs><defs><marker orient="auto" markerHeight="28" markerWidth="20" refY="7" refX="1" class="marker aggregation classDiagram" id="mermaid_classDiagram-aggregationEnd"><path d="M 18,7 L9,13 L1,7 L9,1 Z"></path></marker></defs><defs><marker orient="auto" markerHeight="240" markerWidth="190" refY="7" refX="18" class="marker extension classDiagram" id="mermaid_classDiagram-extensionStart"><path d="M 1,7 L18,13 V 1 Z"></path></marker></defs><defs><marker orient="auto" markerHeight="28" markerWidth="20" refY="7" refX="1" class="marker extension classDiagram" id="mermaid_classDiagram-extensionEnd"><path d="M 1,1 V 13 L18,7 Z"></path></marker></defs><defs><marker orient="auto" markerHeight="240" markerWidth="190" refY="7" refX="18" class="marker composition classDiagram" id="mermaid_classDiagram-compositionStart"><path d="M 18,7 L9,13 L1,7 L9,1 Z"></path></marker></defs><defs><marker orient="auto" markerHeight="28" markerWidth="20" refY="7" refX="1" class="marker composition classDiagram" id="mermaid_classDiagram-compositionEnd"><path d="M 18,7 L9,13 L1,7 L9,1 Z"></path></marker></defs><defs><marker orient="auto" markerHeight="240" markerWidth="190" refY="7" refX="6" class="marker dependency classDiagram" id="mermaid_classDiagram-dependencyStart"><path d="M 5,7 L9,13 L1,7 L9,1 Z"></path></marker></defs><defs><marker orient="auto" markerHeight="28" markerWidth="20" refY="7" refX="13" class="marker dependency classDiagram" id="mermaid_classDiagram-dependencyEnd"><path d="M 18,7 L9,13 L14,7 L9,1 Z"></path></marker></defs><defs><marker orient="auto" markerHeight="240" markerWidth="190" refY="7" refX="13" class="marker lollipop classDiagram" id="mermaid_classDiagram-lollipopStart"><circle r="6" cy="7" cx="7" fill="transparent" stroke="black"></circle></marker></defs><defs><marker orient="auto" markerHeight="240" markerWidth="190" refY="7" refX="1" class="marker lollipop classDiagram" id="mermaid_classDiagram-lollipopEnd"><circle r="6" cy="7" cx="7" fill="transparent" stroke="black"></circle></marker></defs><g class="root"><g class="clusters"></g><g class="edgePaths"><path marker-end="url(#mermaid_classDiagram-extensionEnd)" style="fill:none" class="edge-pattern-dashed relation" id="id_ConcreteClass1_AbstractInterface_1" d="M76.141,99L76.141,103.167C76.141,107.333,76.141,115.667,78.511,121.984C80.882,128.302,85.624,132.604,87.995,134.755L90.366,136.905"></path><path marker-end="url(#mermaid_classDiagram-extensionEnd)" style="fill:none" class="edge-pattern-dashed relation" id="id_ConcreteClass2_AbstractInterface_2" d="M262.422,99L262.422,103.167C262.422,107.333,262.422,115.667,260.051,121.984C257.68,128.302,252.938,132.604,250.568,134.755L248.197,136.905"></path><path marker-end="url(#mermaid_classDiagram-extensionEnd)" style="fill:none" class="edge-pattern-dashed relation" id="id_ConcreteFactory1_AbstractFactory_3" d="M479.508,99L479.508,103.167C479.508,107.333,479.508,115.667,483.141,122.31C486.774,128.954,494.04,133.907,497.673,136.384L501.305,138.861"></path><path marker-end="url(#mermaid_classDiagram-extensionEnd)" style="fill:none" class="edge-pattern-dashed relation" id="id_ConcreteFactory2_AbstractFactory_4" d="M727.398,99L727.398,103.167C727.398,107.333,727.398,115.667,723.765,122.31C720.133,128.954,712.867,133.907,709.234,136.384L705.601,138.861"></path></g><g class="edgeLabels"><g class="edgeLabel"><g transform="translate(0, 0)" class="label"><foreignObject height="0" width="0"><div style="display: inline-block; white-space: nowrap;" xmlns="http://www.w3.org/1999/xhtml"><span class="edgeLabel"></span></div></foreignObject></g></g><g class="edgeLabel"><g transform="translate(0, 0)" class="label"><foreignObject height="0" width="0"><div style="display: inline-block; white-space: nowrap;" xmlns="http://www.w3.org/1999/xhtml"><span class="edgeLabel"></span></div></foreignObject></g></g><g class="edgeLabel"><g transform="translate(0, 0)" class="label"><foreignObject height="0" width="0"><div style="display: inline-block; white-space: nowrap;" xmlns="http://www.w3.org/1999/xhtml"><span class="edgeLabel"></span></div></foreignObject></g></g><g class="edgeLabel"><g transform="translate(0, 0)" class="label"><foreignObject height="0" width="0"><div style="display: inline-block; white-space: nowrap;" xmlns="http://www.w3.org/1999/xhtml"><span class="edgeLabel"></span></div></foreignObject></g></g></g><g class="nodes"><g transform="translate(169.28125, 208.5)" id="classId-AbstractInterface-46" class="node default"><rect height="119" width="147.015625" y="-59.5" x="-73.5078125" class="outer title-state" style=""></rect><line y2="4.5" y1="4.5" x2="73.5078125" x1="-73.5078125" class="divider"></line><line y2="20.5" y1="20.5" x2="73.5078125" x1="-73.5078125" class="divider"></line><g class="label"><foreignObject transform="translate( -39.71875, -52)" height="24" width="79.4375"><div style="display: inline-block; white-space: nowrap;" xmlns="http://www.w3.org/1999/xhtml"><span class="nodeLabel">«interface»</span></div></foreignObject><foreignObject transform="translate( -66.0078125, -24)" height="24" width="132.015625" class="classTitle"><div style="display: inline-block; white-space: nowrap;" xmlns="http://www.w3.org/1999/xhtml"><span class="nodeLabel">AbstractInterface</span></div></foreignObject><foreignObject transform="translate( -66.0078125, 28)" height="24" width="120.5"><div style="display: inline-block; white-space: nowrap;" xmlns="http://www.w3.org/1999/xhtml"><span class="nodeLabel">operation() : void</span></div></foreignObject></g></g><g transform="translate(603.453125, 208.5)" id="classId-AbstractFactory-47" class="node default"><rect height="119" width="204.203125" y="-59.5" x="-102.1015625" class="outer title-state" style=""></rect><line y2="4.5" y1="4.5" x2="102.1015625" x1="-102.1015625" class="divider"></line><line y2="20.5" y1="20.5" x2="102.1015625" x1="-102.1015625" class="divider"></line><g class="label"><foreignObject transform="translate( -39.71875, -52)" height="24" width="79.4375"><div style="display: inline-block; white-space: nowrap;" xmlns="http://www.w3.org/1999/xhtml"><span class="nodeLabel">«interface»</span></div></foreignObject><foreignObject transform="translate( -61.5390625, -24)" height="24" width="123.078125" class="classTitle"><div style="display: inline-block; white-space: nowrap;" xmlns="http://www.w3.org/1999/xhtml"><span class="nodeLabel">AbstractFactory</span></div></foreignObject><foreignObject transform="translate( -94.6015625, 28)" height="24" width="189.203125"><div style="display: inline-block; white-space: nowrap;" xmlns="http://www.w3.org/1999/xhtml"><span class="nodeLabel">create() : AbstractInterface</span></div></foreignObject></g></g><g transform="translate(76.140625, 53.5)" id="classId-ConcreteClass1-48" class="node default"><rect height="91" width="136.28125" y="-45.5" x="-68.140625" class="outer title-state" style=""></rect><line y2="-9.5" y1="-9.5" x2="68.140625" x1="-68.140625" class="divider"></line><line y2="6.5" y1="6.5" x2="68.140625" x1="-68.140625" class="divider"></line><g class="label"><foreignObject height="0" width="0"><div style="display: inline-block; white-space: nowrap;" xmlns="http://www.w3.org/1999/xhtml"><span class="nodeLabel"></span></div></foreignObject><foreignObject transform="translate( -60.640625, -38)" height="24" width="121.28125" class="classTitle"><div style="display: inline-block; white-space: nowrap;" xmlns="http://www.w3.org/1999/xhtml"><span class="nodeLabel">ConcreteClass1</span></div></foreignObject><foreignObject transform="translate( -60.640625, 14)" height="24" width="120.5"><div style="display: inline-block; white-space: nowrap;" xmlns="http://www.w3.org/1999/xhtml"><span class="nodeLabel">operation() : void</span></div></foreignObject></g></g><g transform="translate(262.421875, 53.5)" id="classId-ConcreteClass2-49" class="node default"><rect height="91" width="136.28125" y="-45.5" x="-68.140625" class="outer title-state" style=""></rect><line y2="-9.5" y1="-9.5" x2="68.140625" x1="-68.140625" class="divider"></line><line y2="6.5" y1="6.5" x2="68.140625" x1="-68.140625" class="divider"></line><g class="label"><foreignObject height="0" width="0"><div style="display: inline-block; white-space: nowrap;" xmlns="http://www.w3.org/1999/xhtml"><span class="nodeLabel"></span></div></foreignObject><foreignObject transform="translate( -60.640625, -38)" height="24" width="121.28125" class="classTitle"><div style="display: inline-block; white-space: nowrap;" xmlns="http://www.w3.org/1999/xhtml"><span class="nodeLabel">ConcreteClass2</span></div></foreignObject><foreignObject transform="translate( -60.640625, 14)" height="24" width="120.5"><div style="display: inline-block; white-space: nowrap;" xmlns="http://www.w3.org/1999/xhtml"><span class="nodeLabel">operation() : void</span></div></foreignObject></g></g><g transform="translate(479.5078125, 53.5)" id="classId-ConcreteFactory1-50" class="node default"><rect height="91" width="197.890625" y="-45.5" x="-98.9453125" class="outer title-state" style=""></rect><line y2="-9.5" y1="-9.5" x2="98.9453125" x1="-98.9453125" class="divider"></line><line y2="6.5" y1="6.5" x2="98.9453125" x1="-98.9453125" class="divider"></line><g class="label"><foreignObject height="0" width="0"><div style="display: inline-block; white-space: nowrap;" xmlns="http://www.w3.org/1999/xhtml"><span class="nodeLabel"></span></div></foreignObject><foreignObject transform="translate( -68.21875, -38)" height="24" width="136.4375" class="classTitle"><div style="display: inline-block; white-space: nowrap;" xmlns="http://www.w3.org/1999/xhtml"><span class="nodeLabel">ConcreteFactory1</span></div></foreignObject><foreignObject transform="translate( -91.4453125, 14)" height="24" width="182.890625"><div style="display: inline-block; white-space: nowrap;" xmlns="http://www.w3.org/1999/xhtml"><span class="nodeLabel">create() : ConcreteClass1</span></div></foreignObject></g></g><g transform="translate(727.3984375, 53.5)" id="classId-ConcreteFactory2-51" class="node default"><rect height="91" width="197.890625" y="-45.5" x="-98.9453125" class="outer title-state" style=""></rect><line y2="-9.5" y1="-9.5" x2="98.9453125" x1="-98.9453125" class="divider"></line><line y2="6.5" y1="6.5" x2="98.9453125" x1="-98.9453125" class="divider"></line><g class="label"><foreignObject height="0" width="0"><div style="display: inline-block; white-space: nowrap;" xmlns="http://www.w3.org/1999/xhtml"><span class="nodeLabel"></span></div></foreignObject><foreignObject transform="translate( -68.21875, -38)" height="24" width="136.4375" class="classTitle"><div style="display: inline-block; white-space: nowrap;" xmlns="http://www.w3.org/1999/xhtml"><span class="nodeLabel">ConcreteFactory2</span></div></foreignObject><foreignObject transform="translate( -91.4453125, 14)" height="24" width="182.890625"><div style="display: inline-block; white-space: nowrap;" xmlns="http://www.w3.org/1999/xhtml"><span class="nodeLabel">create() : ConcreteClass2</span></div></foreignObject></g></g></g></g></g></svg><p id="veu3g7_106">The AbstractFactory interface defines a create method that returns some abstract interface (this could be an abstract class or a Java <code class="code" id="veu3g7_126">interface</code>)</p><div class="code-block" data-lang="java">
+public interface AbstractInterface {
+    public void operation();
+}
+
+public interface AbstractFactory {
+    AbstractInterface create();
+}
+</div><p id="veu3g7_108">Multiple implementations of the <code class="code" id="veu3g7_127">AbstractFactory</code> interface create different concrete classes, each concrete class implements <code class="code" id="veu3g7_128">AbstractInterface</code>.</p><div class="code-block" data-lang="java">
+public class ConcreteClass1 implements AbstractInterface {
+    @Override
+    public void operation() {
+
+    }
+}
+
+public class ConcreteFactory1 implements AbstractFactory {
+    @Override
+    public ConcreteClass1 create() {
+        return new ConcreteClass1();
+    }
+}
+
+public class ConcreteClass2 implements AbstractInterface {
+    @Override
+    public void operation() {
+    }
+}
+
+public class ConcreteFactory2 implements AbstractFactory {
+    @Override
+    public ConcreteClass2 create() {
+        return new ConcreteClass2();
+    }
+}
+</div><p id="veu3g7_110">Depending on which ConcreteFactory class is used, either instances of ConcreteClass1 or ConcreteClass2 will be created.</p><p id="veu3g7_111">Normally a single instance of a ConcreteFactory class is created at runtime. All clients using a given factory get new objects with the same concrete implementation. We can change which concrete implementations get created by changing to a different ConcreteFactory class (swap ConcreteFactory2 for ConcreteFactory1 for example).</p><p id="veu3g7_112">This should look like the way we handled different tax calculations using <span id="veu3g7_129">the Strategy Pattern</span>. Using the strategy pattern we hid different implementations of the tax calculation behind a common abstract interface.</p><p id="veu3g7_113">The Abstract Factory pattern is similar, but instead of putting any number of different algorithms behind an abstract interface we have put any number of class constructors behind an abstract interface. In the strategy example we can vary the tax calculation, with the abstract factory we can vary which concrete class is actually instantiated.</p><p id="veu3g7_114">In this example the AbstractFactory has a single <code class="code" id="veu3g7_130">create()</code> method and therefore the factory only creates a single abstract type. The AbstractFactory interface could have multiple creation methods to make a <span class="control" id="veu3g7_131">family</span> of abstract types. Family in this case meaning a set of related types whose implementations need to change together.</p><p id="veu3g7_115">In this example the AbstractFactory has two (and obviously could be more) create methods returning different AbstractInterfaces</p><div class="code-block" data-lang="java">
+public interface AbstractInterfaceA {
+    public void operationA();
+}
+
+public interface AbstractInterfaceB {
+    public void operationB();
+}
+
+public interface AbstractFactory {
+
+    AbstractInterfaceA createA();
+
+    AbstractInterfaceB createB();
+}
+
+</div><p id="veu3g7_117">ConcreteFactory1 creates Concrete classes 1A and 1B</p><div class="code-block" data-lang="java">
+
+public class ConcreteClass1A implements AbstractInterfaceA{
+    @Override
+    public void operationA() {
+
+    }
+}
+
+public class ConcreteClass1B implements AbstractInterfaceB
+{
+    @Override
+    public void operationB() {
+
+    }
+}
+
+public class ConcreteFactory1 implements AbstractFactory {
+    @Override
+    public ConcreteClass1A createA() {
+        return new ConcreteClass1A();
+    }
+
+    @Override
+    public ConcreteClass1B createB() {
+        return new ConcreteClass1B();
+    }
+}
+
+</div><p id="veu3g7_119">ConcreteFactory2 creates Concrete classes 2A and 2B</p><div class="code-block" data-lang="java">
+
+public class ConcreteClass2A implements AbstractInterfaceA {
+    @Override
+    public void operationA() {
+
+    }
+}
+
+public class ConcreteClass2B implements AbstractInterfaceB {
+    @Override
+    public void operationB() {
+
+    }
+}
+
+public class ConcreteFactory2 implements AbstractFactory {
+    @Override
+    public ConcreteClass2A createA() {
+
+        return new ConcreteClass2A();
+    }
+
+    @Override
+    public ConcreteClass2B createB() {
+
+        return new ConcreteClass2B();
+    }
+}
+
+</div><p id="veu3g7_121">The selected concrete factory instance is now creating a range of different objects each having particular concrete implementations. We can change an entire family of concrete implementations by changing which ConcreteFactory we use.</p><p id="veu3g7_122">Most books show the AbstractFactory pattern as being used to create a family of related types, but arguably the more common implementation is that one Factory creates one type, which is just a degenerate case of the family - in effect a family of one.</p><aside class="prompt" data-type="tip" data-title="" id="veu3g7_123"><p id="veu3g7_132">☑ The Abstract Factory pattern encapsulates the responsibility and the process of creating objects, and isolates clients from having to pick which specific concrete implementation classes they create. Instead, clients ask for new object through a Factory and use them through their abstract interfaces.</p></aside></section><section class="chapter"><h2 id="using-factories-for-caching" data-toc="using-factories-for-caching">Using Factories for caching</h2><p id="veu3g7_133">There are times when object creation is expensive in terms of time or resources or both. Looking up data to create from a database or a file store would be good examples where a creation operation could be expensive. We can also use the AbstractFactory pattern to vary the way that objects are created, which is a different use case to varying the concrete implementations of an interface.</p><p id="veu3g7_134">For example, assume we have a class that is expensive to create called <code class="code" id="veu3g7_150">ExpensiveObject</code> because to create it we need to look up data from a file or database in order to create an instance.</p><p id="veu3g7_135">The Factory interface</p><div class="code-block" data-lang="java">
+
+public interface ExpensiveObjectAbstractFactory {
+
+    ExpensiveObject create();
+}
+
+</div><p id="veu3g7_137">The first implementation of the ExpensiveObjectFactory interface looks up the data and creates the object as you would expect:</p><div class="code-block" data-lang="java">
+
+public class ExpensiveObjectLookupFactory implements ExpensiveObjectAbstractFactory {
+
+    public ExpensiveObject create()
+    {
+        //look up data from database or file every time
+        return new ExpensiveObject(....);
+    }
+
+}
+
+</div><p id="veu3g7_139">however a different implementation might create the object once, and when asked for another instance returns the <span class="emphasis" id="veu3g7_151">same</span> instance.</p><div class="code-block" data-lang="java">
+public class ExpensiveObjectSingletonFactory implements ExpensiveObjectAbstractFactory {
+
+    private ExpensiveObject cachedInstance = null;
+
+    public ExpensiveObject create()
+    {
+
+        if(cachedInstance == null)
+        {
+            //look up data from database or file once
+            cachedInstance = new ExpensiveObject(....);
+        }
+        return cachedInstance;
+
+    }
+}
+</div><p id="veu3g7_141">This is an example of <span class="control" id="veu3g7_152">caching</span> - storing an object so that future requests for that object can be served faster or use less resource to serve.</p><p id="veu3g7_142">This arrangement would only work if the data that is used by <code class="code" id="veu3g7_153">ExpensiveObject</code> never changes.</p><p id="veu3g7_143">Usually, cache entries have a <span class="control" id="veu3g7_154">time to live</span> (TTL or expiration time), expressed as a duration (expire after 5 minutes) or absolute (expire at 12:00 midnight) value. This means the object is refreshed if it has lived longer than the TTL.</p><p id="veu3g7_144">Another implementation of ExpensiveObjectFactory could implement a TTL</p><div class="code-block" data-lang="java">
+class ExpensiveObjectTTLFactory implements ExpensiveObjectAbstractFactory{
+
+    private ExpensiveObject cachedInstance = null;
+    private final long ttl  = 1000; //TTL is 1 second
+    private long createdTime = 0; //Time that the cachedInstance was created
+
+
+    //As before there are thread safety issues with this code
+    public ExpensiveObject create()
+    {
+        long now = System.currentTimeMillis();
+        if((cachedInstance == null) || ((now - createdTime) &gt; ttl))
+        {
+            //look up data from database or file
+            cachedInstance = new ExpensiveObject();
+            //set the time the instance was created
+            createdTime = now;
+        }
+        return cachedInstance;
+    }
+}
+</div><aside class="prompt" data-type="tip" data-title="" id="veu3g7_146"><p id="veu3g7_155">🛈 These are code examples and are not thread safe - use a caching library which deals with all the thread safety issues.</p></aside><p id="veu3g7_147">Another option is a <span class="control" id="veu3g7_156">sliding expiry</span> in which refreshes the creationTime on a cache hit. This model should be combined with a maximum TTL so that frequently accessed data does not become too stale.</p><p id="veu3g7_148">When we configure the software system at startup we chose which concrete <code class="code" id="veu3g7_157">ExpensiveObjectFactory</code> implementation to use. The client code will use the ExpensiveObjectFactory abstract type, but depending on if the <code class="code" id="veu3g7_158">ExpensiveObjectLookupFactory</code> or the <code class="code" id="veu3g7_159">ExpensiveObjectSingletonFactory</code> or the <code class="code" id="veu3g7_160">ExpensiveObjectTTLFactory</code> is instantiated, the client will either get a fresh instance every time, or the same instance every time, or an instance that is at most TTL seconds old.</p><p id="veu3g7_149">Using the AbstractFactory pattern means that we can not only vary the concrete class being instantiated, but we can also vary the lifetime of the concrete class that gets instantiated, serving (in this example) instances of different freshness.</p></section><section class="chapter"><h2 id="factory-method-pattern" data-toc="factory-method-pattern">Factory Method Pattern</h2><p id="veu3g7_161">There is problem with the way we have implemented <code class="code" id="veu3g7_170">ExpensiveObjectLookupFactory</code>, <code class="code" id="veu3g7_171">ExpensiveObjectSingletonFactory</code> and <code class="code" id="veu3g7_172">ExpensiveObjectTTLFactory</code>. All implementations directly instantiate a concrete class (<code class="code" id="veu3g7_173">new ExpensiveObject</code>). Although we can vary the lifetime, we can't vary which concrete class actually gets instantiated. We can fix this by using the <span class="control" id="veu3g7_174">Factory Method</span> pattern.</p><p id="veu3g7_162">As we want to vary which the concrete class is instantiated, we first need to define a common abstract interface for all these expensive objects. Let's say that the two concrete classes are <code class="code" id="veu3g7_175">ExpensiveFileObject</code> and <code class="code" id="veu3g7_176">ExpensiveDatabaseObject</code> and they both implement this interface.</p><div class="code-block" data-lang="java">
+public interface AbstractExpensiveObject
+{
+    //interface methods go here
+}
+
+public class ExpensiveFileObject implements AbstractExpensiveObject
+{
+    //implementation
+}
+
+public class ExpensiveDatabaseObject implements AbstractExpensiveObject
+{
+    //implementation
+}
+</div><p id="veu3g7_164">Next, we change the <code class="code" id="veu3g7_177">ExpensiveObjectSingletonFactory</code> to be an abstract class with an abstract method that caches and returns the AbstractExpensiveObject type rather than a concrete type.</p><div class="code-block" data-lang="java">
+public abstract class ExpensiveObjectSingletonFactory {
+
+    private AbstractExpensiveObject cachedInstance = null;
+
+    public AbstractExpensiveObject create()
+    {
+
+        if(cachedInstance == null)
+        {
+            //look up data from database or file
+            cachedInstance = doCreate();
+        }
+        return cachedInstance;
+
+    }
+    protected abstract AbstractExpensiveObject doCreate();
+}
+</div><p id="veu3g7_166">We can now use subclassing to provide different implementations of the <code class="code" id="veu3g7_178">doCreate</code> method; in this example File and Database versions.</p><div class="code-block" data-lang="java">
+public class ExpensiveFileObjectSingletonFactory extends ExpensiveObjectSingletonFactory
+{
+    AbstractExpensiveObject doCreate()
+    {
+        return new ExpensiveFileObject();
+    }
+}
+
+public class ExpensiveDatabaseObjectSingletonFactory extends ExpensiveObjectSingletonFactory
+{
+    AbstractExpensiveObject doCreate()
+    {
+        return new ExpensiveDatabaseObject();
+    }
+}
+</div><p id="veu3g7_168">If we make the same changes for the LookupFactory and TTL Factory we can now vary the concrete type AND the lifetime. The client still just calls <code class="code" id="veu3g7_179">create</code> on the <code class="code" id="veu3g7_180">ExpensiveObjectAbstractFactory</code> interface, for example</p><div class="code-block" data-lang="java">
+
+//I want to create a singleton from the database
+ExpensiveObjectSingletonFactory factory = new ExpensiveDatabaseObjectSingletonFactory();
+
+AbstractExpensiveObject theInstance = factory.create();
+AbstractExpensiveObject anotherInstance = factory.create();
+
+</div></section><section class="chapter"><h2 id="general-form-of-the-factory-method-pattern" data-toc="general-form-of-the-factory-method-pattern">General form of the Factory Method pattern</h2><p id="veu3g7_181">The general form of the <span class="control" id="veu3g7_188">Factory Method</span> pattern.</p><p id="veu3g7_182">Assume we want to make different concrete classes inherited from an abstract superclass</p><div class="code-block" data-lang="java">
+abstract class AbstractClass {
+    public abstract void operation();
+}
+
+class ConcreteClass1 extends AbstractClass {
+    @Override
+    public void operation() {
+    }
+}
+
+class ConcreteClass2 extends AbstractClass {
+    @Override
+    public void operation() {
+    }
+}
+
+</div><p id="veu3g7_184">We make an AbstractCreator which has a <code class="code" id="veu3g7_189">public create()</code> method and an abstract protected <code class="code" id="veu3g7_190">factoryMethod()</code>. Concrete subclasses of the AbstractCreator implement <code class="code" id="veu3g7_191">factoryMethod()</code> to create concrete classes. The<code class="code" id="veu3g7_192">public create()</code> method can contain any common code that runs before or after the requested object is made and before it is returned to the client.</p><div class="code-block" data-lang="java">
+
+abstract class AbstractCreator {
+    public AbstractClass create()
+    {
+        return factoryMethod();
+    }
+    protected abstract AbstractClass factoryMethod();
+}
+
+
+class ConcreteCreator1 extends AbstractCreator {
+
+    @Override
+    protected ConcreteClass1 factoryMethod() {
+        return new ConcreteClass1();
+    }
+}
+
+class ConcreteCreator2 extends AbstractCreator {
+    @Override
+    protected ConcreteClass1 factoryMethod() {
+        return new ConcreteClass1();
+    }
+}
+</div><p id="veu3g7_186">As a UML diagram.</p><svg aria-roledescription="classDiagram" role="graphics-document document" viewBox="0 0 984.25 304"  xmlns="http://www.w3.org/2000/svg" width="984.25" id="mermaid"><g><defs><marker orient="auto" markerHeight="240" markerWidth="190" refY="7" refX="18" class="marker aggregation classDiagram" id="mermaid_classDiagram-aggregationStart"><path d="M 18,7 L9,13 L1,7 L9,1 Z"></path></marker></defs><defs><marker orient="auto" markerHeight="28" markerWidth="20" refY="7" refX="1" class="marker aggregation classDiagram" id="mermaid_classDiagram-aggregationEnd"><path d="M 18,7 L9,13 L1,7 L9,1 Z"></path></marker></defs><defs><marker orient="auto" markerHeight="240" markerWidth="190" refY="7" refX="18" class="marker extension classDiagram" id="mermaid_classDiagram-extensionStart"><path d="M 1,7 L18,13 V 1 Z"></path></marker></defs><defs><marker orient="auto" markerHeight="28" markerWidth="20" refY="7" refX="1" class="marker extension classDiagram" id="mermaid_classDiagram-extensionEnd"><path d="M 1,1 V 13 L18,7 Z"></path></marker></defs><defs><marker orient="auto" markerHeight="240" markerWidth="190" refY="7" refX="18" class="marker composition classDiagram" id="mermaid_classDiagram-compositionStart"><path d="M 18,7 L9,13 L1,7 L9,1 Z"></path></marker></defs><defs><marker orient="auto" markerHeight="28" markerWidth="20" refY="7" refX="1" class="marker composition classDiagram" id="mermaid_classDiagram-compositionEnd"><path d="M 18,7 L9,13 L1,7 L9,1 Z"></path></marker></defs><defs><marker orient="auto" markerHeight="240" markerWidth="190" refY="7" refX="6" class="marker dependency classDiagram" id="mermaid_classDiagram-dependencyStart"><path d="M 5,7 L9,13 L1,7 L9,1 Z"></path></marker></defs><defs><marker orient="auto" markerHeight="28" markerWidth="20" refY="7" refX="13" class="marker dependency classDiagram" id="mermaid_classDiagram-dependencyEnd"><path d="M 18,7 L9,13 L14,7 L9,1 Z"></path></marker></defs><defs><marker orient="auto" markerHeight="240" markerWidth="190" refY="7" refX="13" class="marker lollipop classDiagram" id="mermaid_classDiagram-lollipopStart"><circle r="6" cy="7" cx="7" fill="transparent" stroke="black"></circle></marker></defs><defs><marker orient="auto" markerHeight="240" markerWidth="190" refY="7" refX="1" class="marker lollipop classDiagram" id="mermaid_classDiagram-lollipopEnd"><circle r="6" cy="7" cx="7" fill="transparent" stroke="black"></circle></marker></defs><g class="root"><g class="clusters"></g><g class="edgePaths"><path marker-start="url(#mermaid_classDiagram-extensionStart)" style="fill:none" class="edge-pattern-dashed relation" id="id_AbstractClass_ConcreteClass1_1" d="M100.651,154.079L96.566,158.399C92.481,162.719,84.311,171.36,80.226,179.846C76.141,188.333,76.141,196.667,76.141,200.833L76.141,205"></path><path marker-start="url(#mermaid_classDiagram-extensionStart)" style="fill:none" class="edge-pattern-dashed relation" id="id_AbstractClass_ConcreteClass2_2" d="M237.911,154.079L241.996,158.399C246.081,162.719,254.252,171.36,258.337,179.846C262.422,188.333,262.422,196.667,262.422,200.833L262.422,205"></path><path marker-start="url(#mermaid_classDiagram-extensionStart)" style="fill:none" class="edge-pattern-dashed relation" id="id_AbstractCreator_ConcreteCreator1_3" d="M542.589,164.376L538.322,166.98C534.054,169.584,525.519,174.792,521.252,181.563C516.984,188.333,516.984,196.667,516.984,200.833L516.984,205"></path><path marker-start="url(#mermaid_classDiagram-extensionStart)" style="fill:none" class="edge-pattern-dashed relation" id="id_AbstractCreator_ConcreteCreator2_4" d="M814.223,164.376L818.491,166.98C822.758,169.584,831.293,174.792,835.561,181.563C839.828,188.333,839.828,196.667,839.828,200.833L839.828,205"></path></g><g class="edgeLabels"><g class="edgeLabel"><g transform="translate(0, 0)" class="label"><foreignObject height="0" width="0"><div style="display: inline-block; white-space: nowrap;" xmlns="http://www.w3.org/1999/xhtml"><span class="edgeLabel"></span></div></foreignObject></g></g><g class="edgeLabel"><g transform="translate(0, 0)" class="label"><foreignObject height="0" width="0"><div style="display: inline-block; white-space: nowrap;" xmlns="http://www.w3.org/1999/xhtml"><span class="edgeLabel"></span></div></foreignObject></g></g><g class="edgeLabel"><g transform="translate(0, 0)" class="label"><foreignObject height="0" width="0"><div style="display: inline-block; white-space: nowrap;" xmlns="http://www.w3.org/1999/xhtml"><span class="edgeLabel"></span></div></foreignObject></g></g><g class="edgeLabel"><g transform="translate(0, 0)" class="label"><foreignObject height="0" width="0"><div style="display: inline-block; white-space: nowrap;" xmlns="http://www.w3.org/1999/xhtml"><span class="edgeLabel"></span></div></foreignObject></g></g></g><g class="nodes"><g transform="translate(169.28125, 81.5)" id="classId-AbstractClass-77" class="node default"><rect height="119" width="122.921875" y="-59.5" x="-61.4609375" class="outer title-state" style=""></rect><line y2="4.5" y1="4.5" x2="61.4609375" x1="-61.4609375" class="divider"></line><line y2="20.5" y1="20.5" x2="61.4609375" x1="-61.4609375" class="divider"></line><g class="label"><foreignObject transform="translate( -37.4765625, -52)" height="24" width="74.953125"><div style="display: inline-block; white-space: nowrap;" xmlns="http://www.w3.org/1999/xhtml"><span class="nodeLabel">«abstract»</span></div></foreignObject><foreignObject transform="translate( -53.9609375, -24)" height="24" width="107.921875" class="classTitle"><div style="display: inline-block; white-space: nowrap;" xmlns="http://www.w3.org/1999/xhtml"><span class="nodeLabel">AbstractClass</span></div></foreignObject><foreignObject transform="translate( -53.9609375, 28)" height="24" width="87.015625"><div style="display: inline-block; white-space: nowrap;" xmlns="http://www.w3.org/1999/xhtml"><span class="nodeLabel">+operation()</span></div></foreignObject></g></g><g transform="translate(76.140625, 250.5)" id="classId-ConcreteClass1-78" class="node default"><rect height="91" width="136.28125" y="-45.5" x="-68.140625" class="outer title-state" style=""></rect><line y2="-9.5" y1="-9.5" x2="68.140625" x1="-68.140625" class="divider"></line><line y2="6.5" y1="6.5" x2="68.140625" x1="-68.140625" class="divider"></line><g class="label"><foreignObject height="0" width="0"><div style="display: inline-block; white-space: nowrap;" xmlns="http://www.w3.org/1999/xhtml"><span class="nodeLabel"></span></div></foreignObject><foreignObject transform="translate( -60.640625, -38)" height="24" width="121.28125" class="classTitle"><div style="display: inline-block; white-space: nowrap;" xmlns="http://www.w3.org/1999/xhtml"><span class="nodeLabel">ConcreteClass1</span></div></foreignObject><foreignObject transform="translate( -60.640625, 14)" height="24" width="87.015625"><div style="display: inline-block; white-space: nowrap;" xmlns="http://www.w3.org/1999/xhtml"><span class="nodeLabel">+operation()</span></div></foreignObject></g></g><g transform="translate(262.421875, 250.5)" id="classId-ConcreteClass2-79" class="node default"><rect height="91" width="136.28125" y="-45.5" x="-68.140625" class="outer title-state" style=""></rect><line y2="-9.5" y1="-9.5" x2="68.140625" x1="-68.140625" class="divider"></line><line y2="6.5" y1="6.5" x2="68.140625" x1="-68.140625" class="divider"></line><g class="label"><foreignObject height="0" width="0"><div style="display: inline-block; white-space: nowrap;" xmlns="http://www.w3.org/1999/xhtml"><span class="nodeLabel"></span></div></foreignObject><foreignObject transform="translate( -60.640625, -38)" height="24" width="121.28125" class="classTitle"><div style="display: inline-block; white-space: nowrap;" xmlns="http://www.w3.org/1999/xhtml"><span class="nodeLabel">ConcreteClass2</span></div></foreignObject><foreignObject transform="translate( -60.640625, 14)" height="24" width="87.015625"><div style="display: inline-block; white-space: nowrap;" xmlns="http://www.w3.org/1999/xhtml"><span class="nodeLabel">+operation()</span></div></foreignObject></g></g><g transform="translate(678.40625, 81.5)" id="classId-AbstractCreator-80" class="node default"><rect height="147" width="256.796875" y="-73.5" x="-128.3984375" class="outer title-state" style=""></rect><line y2="-9.5" y1="-9.5" x2="128.3984375" x1="-128.3984375" class="divider"></line><line y2="6.5" y1="6.5" x2="128.3984375" x1="-128.3984375" class="divider"></line><g class="label"><foreignObject transform="translate( -37.4765625, -66)" height="24" width="74.953125"><div style="display: inline-block; white-space: nowrap;" xmlns="http://www.w3.org/1999/xhtml"><span class="nodeLabel">«abstract»</span></div></foreignObject><foreignObject transform="translate( -61.09375, -38)" height="24" width="122.1875" class="classTitle"><div style="display: inline-block; white-space: nowrap;" xmlns="http://www.w3.org/1999/xhtml"><span class="nodeLabel">AbstractCreator</span></div></foreignObject><foreignObject transform="translate( -120.8984375, 14)" height="24" width="185.15625"><div style="display: inline-block; white-space: nowrap;" xmlns="http://www.w3.org/1999/xhtml"><span class="nodeLabel">+create() : : AbstractClass</span></div></foreignObject><foreignObject transform="translate( -120.8984375, 42)" height="24" width="241.796875"><div style="display: inline-block; white-space: nowrap;" xmlns="http://www.w3.org/1999/xhtml"><span class="nodeLabel">#factoryMethod() : : AbstractClass</span></div></foreignObject></g></g><g transform="translate(516.984375, 250.5)" id="classId-ConcreteCreator1-81" class="node default"><rect height="91" width="272.84375" y="-45.5" x="-136.421875" class="outer title-state" style=""></rect><line y2="-9.5" y1="-9.5" x2="136.421875" x1="-136.421875" class="divider"></line><line y2="6.5" y1="6.5" x2="136.421875" x1="-136.421875" class="divider"></line><g class="label"><foreignObject height="0" width="0"><div style="display: inline-block; white-space: nowrap;" xmlns="http://www.w3.org/1999/xhtml"><span class="nodeLabel"></span></div></foreignObject><foreignObject transform="translate( -67.7734375, -38)" height="24" width="135.546875" class="classTitle"><div style="display: inline-block; white-space: nowrap;" xmlns="http://www.w3.org/1999/xhtml"><span class="nodeLabel">ConcreteCreator1</span></div></foreignObject><foreignObject transform="translate( -128.921875, 14)" height="24" width="257.84375"><div style="display: inline-block; white-space: nowrap;" xmlns="http://www.w3.org/1999/xhtml"><span class="nodeLabel">#factoryMethod() : : ConcreteClass1</span></div></foreignObject></g></g><g transform="translate(839.828125, 250.5)" id="classId-ConcreteCreator2-82" class="node default"><rect height="91" width="272.84375" y="-45.5" x="-136.421875" class="outer title-state" style=""></rect><line y2="-9.5" y1="-9.5" x2="136.421875" x1="-136.421875" class="divider"></line><line y2="6.5" y1="6.5" x2="136.421875" x1="-136.421875" class="divider"></line><g class="label"><foreignObject height="0" width="0"><div style="display: inline-block; white-space: nowrap;" xmlns="http://www.w3.org/1999/xhtml"><span class="nodeLabel"></span></div></foreignObject><foreignObject transform="translate( -67.7734375, -38)" height="24" width="135.546875" class="classTitle"><div style="display: inline-block; white-space: nowrap;" xmlns="http://www.w3.org/1999/xhtml"><span class="nodeLabel">ConcreteCreator2</span></div></foreignObject><foreignObject transform="translate( -128.921875, 14)" height="24" width="257.84375"><div style="display: inline-block; white-space: nowrap;" xmlns="http://www.w3.org/1999/xhtml"><span class="nodeLabel">#factoryMethod() : : ConcreteClass2</span></div></foreignObject></g></g></g></g></g></svg></section><section class="chapter"><h2 id="the-template-method-pattern" data-toc="the-template-method-pattern">The Template Method Pattern</h2><p id="veu3g7_193">The pattern we have described here is called the <span class="control" id="veu3g7_208">Factory Method Pattern</span> because it calls the factory code (the code that creates an instance of a concrete class) from some other method. This means that we can execute common code before and after the call to the factory code that actually creates an instance.</p><p id="veu3g7_194">It is also a good illustration of when to use an abstract base class because it allows common code to be put in the base class, and the customised specific code to be put in different subclasses.</p><p id="veu3g7_195">The Factory Method pattern a specific case of the <span class="control" id="veu3g7_209">Template Method</span> pattern.</p><ol class="list _decimal" id="veu3g7_196" type="1"><li class="list__item" id="veu3g7_210"><p id="veu3g7_213">Create an abstract base class with a method that contains an algorithm (recall the definition of an algorithm is a sequence of steps that solves a problem) which calls one or more abstract methods.</p></li><li class="list__item" id="veu3g7_211"><p id="veu3g7_214">The implementation of the abstract method(s) is deferred to a subclass</p></li><li class="list__item" id="veu3g7_212"><p id="veu3g7_215">By creating different subclasses we can implement different versions of the abstract method for different purposes.</p></li></ol><p id="veu3g7_197">For example, if you decided you never wanted to write a for loop again, you could use the template method pattern.</p><div class="code-block" data-lang="java">
+public abstract class AbstractLoopingClass
+{
+    public void loop(int count)
+    {
+
+        beforeLoop();
+        for(int i = 1; i &lt; count; i++&gt;)
+        {
+            doOperation();
+        }
+        afterLoop();
+    }
+
+    protected abstract void doOperation();
+    protected abstract void beforeLoop();
+    protected abstract void afterLoop();
+}
+</div><p id="veu3g7_199">Now you never have to write another for loop again, you just subclass the looping class</p><div class="code-block" data-lang="java">
+public class ConcreteLoopingClass extends AbstractLoopingClass
+{
+    @Override
+    protected  void beforeLoop()
+    {
+        //prepare for loop
+    }
+
+    @Override
+    protected  void doOperation()
+    {
+        //my actual operation
+    }
+
+    @Override
+    protected  void afterLoop()
+    {
+        //cleanup after loop
+    }
+
+}
+</div><p id="veu3g7_201">The client code</p><div class="code-block" data-lang="java">
+AbstractLoopingClass looper = new ConcereteLoopingClass();
+looper.loop(100);
+</div><aside class="prompt" data-type="tip" data-title="" id="veu3g7_203"><p id="veu3g7_216">☠ Please don't take this example too literally (writing a simple <code class="code" id="veu3g7_217">for</code> loop would be much more obvious to the reader), it's just an illustration to show how you can write one common algorithm with some steps varied via subclassing. Having said that, we have written something similar to the AbstractLoopingClass to create loops with complex error recovery, retries or timeouts.</p></aside><p id="veu3g7_204">The general form for Template Method.</p><svg aria-roledescription="classDiagram" role="graphics-document document" viewBox="0 0 338.5625 360"  xmlns="http://www.w3.org/2000/svg" width="338.5625" id="mermaid"><g><defs><marker orient="auto" markerHeight="240" markerWidth="190" refY="7" refX="18" class="marker aggregation classDiagram" id="mermaid_classDiagram-aggregationStart"><path d="M 18,7 L9,13 L1,7 L9,1 Z"></path></marker></defs><defs><marker orient="auto" markerHeight="28" markerWidth="20" refY="7" refX="1" class="marker aggregation classDiagram" id="mermaid_classDiagram-aggregationEnd"><path d="M 18,7 L9,13 L1,7 L9,1 Z"></path></marker></defs><defs><marker orient="auto" markerHeight="240" markerWidth="190" refY="7" refX="18" class="marker extension classDiagram" id="mermaid_classDiagram-extensionStart"><path d="M 1,7 L18,13 V 1 Z"></path></marker></defs><defs><marker orient="auto" markerHeight="28" markerWidth="20" refY="7" refX="1" class="marker extension classDiagram" id="mermaid_classDiagram-extensionEnd"><path d="M 1,1 V 13 L18,7 Z"></path></marker></defs><defs><marker orient="auto" markerHeight="240" markerWidth="190" refY="7" refX="18" class="marker composition classDiagram" id="mermaid_classDiagram-compositionStart"><path d="M 18,7 L9,13 L1,7 L9,1 Z"></path></marker></defs><defs><marker orient="auto" markerHeight="28" markerWidth="20" refY="7" refX="1" class="marker composition classDiagram" id="mermaid_classDiagram-compositionEnd"><path d="M 18,7 L9,13 L1,7 L9,1 Z"></path></marker></defs><defs><marker orient="auto" markerHeight="240" markerWidth="190" refY="7" refX="6" class="marker dependency classDiagram" id="mermaid_classDiagram-dependencyStart"><path d="M 5,7 L9,13 L1,7 L9,1 Z"></path></marker></defs><defs><marker orient="auto" markerHeight="28" markerWidth="20" refY="7" refX="13" class="marker dependency classDiagram" id="mermaid_classDiagram-dependencyEnd"><path d="M 18,7 L9,13 L14,7 L9,1 Z"></path></marker></defs><defs><marker orient="auto" markerHeight="240" markerWidth="190" refY="7" refX="13" class="marker lollipop classDiagram" id="mermaid_classDiagram-lollipopStart"><circle r="6" cy="7" cx="7" fill="transparent" stroke="black"></circle></marker></defs><defs><marker orient="auto" markerHeight="240" markerWidth="190" refY="7" refX="1" class="marker lollipop classDiagram" id="mermaid_classDiagram-lollipopEnd"><circle r="6" cy="7" cx="7" fill="transparent" stroke="black"></circle></marker></defs><g class="root"><g class="clusters"></g><g class="edgePaths"><path marker-end="url(#mermaid_classDiagram-extensionEnd)" style="fill:none" class="edge-pattern-solid relation" id="id_ConcreteClass1_AbstractClass_1" d="M76.141,127L76.141,131.167C76.141,135.333,76.141,143.667,78.019,150.102C79.898,156.538,83.655,161.076,85.533,163.345L87.412,165.614"></path><path marker-end="url(#mermaid_classDiagram-extensionEnd)" style="fill:none" class="edge-pattern-solid relation" id="id_ConcreteClass2_AbstractClass_2" d="M262.422,127L262.422,131.167C262.422,135.333,262.422,143.667,260.543,150.102C258.665,156.538,254.908,161.076,253.029,163.345L251.151,165.614"></path></g><g class="edgeLabels"><g class="edgeLabel"><g transform="translate(0, 0)" class="label"><foreignObject height="0" width="0"><div style="display: inline-block; white-space: nowrap;" xmlns="http://www.w3.org/1999/xhtml"><span class="edgeLabel"></span></div></foreignObject></g></g><g class="edgeLabel"><g transform="translate(0, 0)" class="label"><foreignObject height="0" width="0"><div style="display: inline-block; white-space: nowrap;" xmlns="http://www.w3.org/1999/xhtml"><span class="edgeLabel"></span></div></foreignObject></g></g></g><g class="nodes"><g transform="translate(169.28125, 264.5)" id="classId-AbstractClass-96" class="node default"><rect height="175" width="140.78125" y="-87.5" x="-70.390625" class="outer title-state" style=""></rect><line y2="-23.5" y1="-23.5" x2="70.390625" x1="-70.390625" class="divider"></line><line y2="-7.5" y1="-7.5" x2="70.390625" x1="-70.390625" class="divider"></line><g class="label"><foreignObject transform="translate( -37.4765625, -80)" height="24" width="74.953125"><div style="display: inline-block; white-space: nowrap;" xmlns="http://www.w3.org/1999/xhtml"><span class="nodeLabel">«abstract»</span></div></foreignObject><foreignObject transform="translate( -53.9609375, -52)" height="24" width="107.921875" class="classTitle"><div style="display: inline-block; white-space: nowrap;" xmlns="http://www.w3.org/1999/xhtml"><span class="nodeLabel">AbstractClass</span></div></foreignObject><foreignObject transform="translate( -62.890625, 0)" height="24" width="125.78125"><div style="display: inline-block; white-space: nowrap;" xmlns="http://www.w3.org/1999/xhtml"><span class="nodeLabel">templateMethod()</span></div></foreignObject><foreignObject transform="translate( -62.890625, 28)" height="24" width="86.5625"><div xmlns="http://www.w3.org/1999/xhtml" style="font-style: italic; display: inline-block; white-space: nowrap;"><span class="nodeLabel" style="font-style:italic;">operation1()</span></div></foreignObject><foreignObject transform="translate( -62.890625, 56)" height="24" width="86.5625"><div xmlns="http://www.w3.org/1999/xhtml" style="font-style: italic; display: inline-block; white-space: nowrap;"><span class="nodeLabel" style="font-style:italic;">operation2()</span></div></foreignObject></g></g><g transform="translate(76.140625, 67.5)" id="classId-ConcreteClass1-97" class="node default"><rect height="119" width="136.28125" y="-59.5" x="-68.140625" class="outer title-state" style=""></rect><line y2="-23.5" y1="-23.5" x2="68.140625" x1="-68.140625" class="divider"></line><line y2="-7.5" y1="-7.5" x2="68.140625" x1="-68.140625" class="divider"></line><g class="label"><foreignObject height="0" width="0"><div style="display: inline-block; white-space: nowrap;" xmlns="http://www.w3.org/1999/xhtml"><span class="nodeLabel"></span></div></foreignObject><foreignObject transform="translate( -60.640625, -52)" height="24" width="121.28125" class="classTitle"><div style="display: inline-block; white-space: nowrap;" xmlns="http://www.w3.org/1999/xhtml"><span class="nodeLabel">ConcreteClass1</span></div></foreignObject><foreignObject transform="translate( -60.640625, 0)" height="24" width="86.5625"><div style="display: inline-block; white-space: nowrap;" xmlns="http://www.w3.org/1999/xhtml"><span class="nodeLabel">operation1()</span></div></foreignObject><foreignObject transform="translate( -60.640625, 28)" height="24" width="86.5625"><div style="display: inline-block; white-space: nowrap;" xmlns="http://www.w3.org/1999/xhtml"><span class="nodeLabel">operation2()</span></div></foreignObject></g></g><g transform="translate(262.421875, 67.5)" id="classId-ConcreteClass2-98" class="node default"><rect height="119" width="136.28125" y="-59.5" x="-68.140625" class="outer title-state" style=""></rect><line y2="-23.5" y1="-23.5" x2="68.140625" x1="-68.140625" class="divider"></line><line y2="-7.5" y1="-7.5" x2="68.140625" x1="-68.140625" class="divider"></line><g class="label"><foreignObject height="0" width="0"><div style="display: inline-block; white-space: nowrap;" xmlns="http://www.w3.org/1999/xhtml"><span class="nodeLabel"></span></div></foreignObject><foreignObject transform="translate( -60.640625, -52)" height="24" width="121.28125" class="classTitle"><div style="display: inline-block; white-space: nowrap;" xmlns="http://www.w3.org/1999/xhtml"><span class="nodeLabel">ConcreteClass2</span></div></foreignObject><foreignObject transform="translate( -60.640625, 0)" height="24" width="86.5625"><div style="display: inline-block; white-space: nowrap;" xmlns="http://www.w3.org/1999/xhtml"><span class="nodeLabel">operation1()</span></div></foreignObject><foreignObject transform="translate( -60.640625, 28)" height="24" width="86.5625"><div style="display: inline-block; white-space: nowrap;" xmlns="http://www.w3.org/1999/xhtml"><span class="nodeLabel">operation2()</span></div></foreignObject></g></g></g></g></g></svg><div class="code-block" data-lang="java">
+abstract class AbstractClass
+{
+    public void templateMethod()
+    {
+        operation1();
+        operation2();
+        //add more as required
+
+    }
+
+    protected abstract void operation1();
+    protected abstract void operation2();
+}
+
+
+public class ConcreteClass extends AbstractClass
+{
+    @Override
+    protected  void operation1()
+    {
+        //implementation of operation
+    }
+
+    @Override
+    protected  void operation2()
+    {
+        //implementation of operation
+    }
+}
+
+</div><p id="veu3g7_207">You could also implement TemplateMethod using Strategies to supply operation1 and operation2. This would be an example of using aggregation over inheritance.</p></section><div class="last-modified">12 September 2025</div><div data-feedback-placeholder="true"></div><div class="navigation-links _bottom"><a href="variations.html" class="navigation-links__prev">More ways of handling variation</a><a href="pipelines.html" class="navigation-links__next">Adding or changing behavior of closed classes with Pipelines</a></div></article><div id="disqus_thread"></div></div></section></main></div><script src="https://resources.jetbrains.com/writerside/apidoc/6.26.0-b913/app.js"></script></body></html>

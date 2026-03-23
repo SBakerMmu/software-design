@@ -1,0 +1,335 @@
+<!DOCTYPE html SYSTEM "about:legacy-compat">
+<html lang="en-US" data-preset="contrast" data-primary-color="#307FFF"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="robots" content="noindex"><meta name="built-on" content="2026-03-23T15:44:20.428984902"><title>Design of a single class - Replacing primitives with Value Objects | Software Design and Architecture</title><script type="application/json" id="virtual-toc-data">[{"id":"value-objects","level":0,"title":"Value Objects","anchor":"#value-objects"},{"id":"value-objects-a-worked-example","level":0,"title":"Value Objects - A worked example","anchor":"#value-objects-a-worked-example"},{"id":"writing-custom-exceptions","level":0,"title":"Writing Custom Exceptions","anchor":"#writing-custom-exceptions"},{"id":"dry-primitive-obsessions-and-value-objects","level":0,"title":"DRY, Primitive Obsessions and Value Objects","anchor":"#dry-primitive-obsessions-and-value-objects"},{"id":"a-note-on-checksums-in-identities","level":0,"title":"A Note on Checksums in identities","anchor":"#a-note-on-checksums-in-identities"},{"id":"uuids-universally-unique-identifiers","level":0,"title":"UUIDs - Universally Unique Identifiers","anchor":"#uuids-universally-unique-identifiers"}]</script><script type="application/json" id="topic-shortcuts"></script><link href="https://resources.jetbrains.com/writerside/apidoc/6.26.0-b913/app.css" rel="stylesheet"><meta name="msapplication-TileColor" content="#000000"><link rel="apple-touch-icon" sizes="180x180" href="https://jetbrains.com/apple-touch-icon.png"><link rel="icon" type="image/png" sizes="32x32" href="https://jetbrains.com/favicon-32x32.png"><link rel="icon" type="image/png" sizes="16x16" href="https://jetbrains.com/favicon-16x16.png"><meta name="msapplication-TileImage" content="https://resources.jetbrains.com/storage/ui/favicons/mstile-144x144.png"><meta name="msapplication-square70x70logo" content="https://resources.jetbrains.com/storage/ui/favicons/mstile-70x70.png"><meta name="msapplication-square150x150logo" content="https://resources.jetbrains.com/storage/ui/favicons/mstile-150x150.png"><meta name="msapplication-wide310x150logo" content="https://resources.jetbrains.com/storage/ui/favicons/mstile-310x150.png"><meta name="msapplication-square310x310logo" content="https://resources.jetbrains.com/storage/ui/favicons/mstile-310x310.png"><meta name="image" content=""><!-- Open Graph --><meta property="og:title" content="Design of a single class - Replacing primitives with Value Objects | Software Design and Architecture"><meta property="og:description" content=""><meta property="og:image" content=""><meta property="og:site_name" content="Software Design and Architecture Help"><meta property="og:type" content="website"><meta property="og:locale" content="en_US"><meta property="og:url" content="writerside-documentation/singleclassdesign03.html"><!-- End Open Graph --><!-- Twitter Card --><meta name="twitter:card" content="summary_large_image"><meta name="twitter:site" content=""><meta name="twitter:title" content="Design of a single class - Replacing primitives with Value Objects | Software Design and Architecture"><meta name="twitter:description" content=""><meta name="twitter:creator" content=""><meta name="twitter:image:src" content=""><!-- End Twitter Card --><!-- Schema.org WebPage --><script type="application/ld+json">{
+    "@context": "http://schema.org",
+    "@type": "WebPage",
+    "@id": "writerside-documentation/singleclassdesign03.html#webpage",
+    "url": "writerside-documentation/singleclassdesign03.html",
+    "name": "Design of a single class - Replacing primitives with Value Objects | Software Design and Architecture",
+    "description": "",
+    "image": "",
+    "inLanguage":"en-US"
+}</script><!-- End Schema.org --><!-- Schema.org WebSite --><script type="application/ld+json">{
+    "@type": "WebSite",
+    "@id": "writerside-documentation/#website",
+    "url": "writerside-documentation/",
+    "name": "Software Design and Architecture Help"
+}</script><!-- End Schema.org --></head><body data-id="SingleClassDesign03" data-main-title="Design of a single class - Replacing primitives with Value Objects" data-article-props="{&quot;seeAlsoStyle&quot;:&quot;links&quot;}" data-template="article" data-breadcrumbs=""><div class="wrapper"><main class="panel _main"><header class="panel__header"><div class="container"><h3>Software Design and Architecture  Help</h3><div class="panel-trigger"></div></div></header><section class="panel__content"><div class="container"><article class="article" data-shortcut-switcher="inactive"><h1 data-toc="SingleClassDesign03" id="SingleClassDesign03.md">Design of a single class - Replacing primitives with Value Objects</h1><p id="z7saqvi_3">In all the examples we have seen we have used <span class="control" id="z7saqvi_18">primitive types</span> (doubles and integers for example) and Strings to hold values. It is much better to work with dedicated classes that represent the values in your software design. Although it is a bit more work to start with, every time you use an instance of your class rather than a primitive, you will see a benefit.</p><p id="z7saqvi_4">In an e-commerce system we can represent prices and discounts as <code class="code" id="z7saqvi_19">double</code> primitives. But then we rely on variable, field and parameter naming to distinguish what is the meaning of each value.</p><p id="z7saqvi_5">In retail a non-discounted price is called a <span class="control" id="z7saqvi_20">Full Price</span>, so we can create named class that communicates the purpose of the value - the class has a name which tells us what kind of price it is.</p><div class="code-block" data-lang="java">
+import java.util.Objects;
+
+class FullPrice {
+    public static final FullPrice ZERO = new FullPrice();
+
+    private static final double NONE = 0.0d;
+    final private double price;
+
+    private FullPrice() {
+        this(NONE);
+    }
+
+    public FullPrice(double price) {
+        if (price &lt; NONE) {
+            //throw
+        }
+        this.price = price;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (o == null || getClass() != o.getClass()) return false;
+        FullPrice fullPrice = (FullPrice) o;
+        return Double.compare(price, fullPrice.price) == 0;
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hashCode(price);
+    }
+
+    @Override
+    public String toString() {
+        return &quot;FullPrice{&quot; +
+                &quot;price=&quot; + price +
+                '}';
+    }
+
+    public double get() {
+        return price;
+    }
+}
+</div><p id="z7saqvi_7">Note that the class is <span class="control" id="z7saqvi_21">immutable</span> meaning that the data inside cannot be changed once created, so that they behave like primitive values (which also cannot be changed). To do this we declare all the fields as being <code class="code" id="z7saqvi_22">final</code> so that they can only be initialized in the constructor and never changed.</p><p id="z7saqvi_8">Classes that replace the use of primitive and String values are called <span class="control" id="z7saqvi_23">Value Objects</span>. This isn't a term you will find in the Java specification; it just means that we have created a type that is intended to replace the use of a primitive type such as int or double, or a Jave String or date class. By using Value Objects we get the benefit of type safety</p><p id="z7saqvi_9">We can put all the pre-condition, post-condition and class invariant checking code in one place, guaranteeing that when we create an instance of the FullPrice class, it will be valid. As these objects are immutable, once created, they always remain valid. Clients can then just use instance without having to do further checking, because of the guarantees we have built into the class.</p><p id="z7saqvi_10">Because they represent values, two instances of a Value Object are equal when the values of their instance variables are equal - in other words they have content equality. Value Object are classes that represent small things such as values or measures and provide a single place to put all their creation and usage logic.</p><p id="z7saqvi_11">Value Object is a <span class="control" id="z7saqvi_24">Design Pattern</span>. Design patterns are solutions for common problems that arise during software design and development. Design patterns are like recipes you follow to write code to solve a small, well-defined aspects of a larger software problem.</p><section class="chapter"><h2 id="value-objects" data-toc="value-objects">Value Objects</h2><ul class="list _bullet" id="z7saqvi_25"><li class="list__item" id="z7saqvi_30"><p id="z7saqvi_38">There is no special Java keyword that makes a class a Value Object.</p></li><li class="list__item" id="z7saqvi_31"><p id="z7saqvi_39">Value Objects are always immutable (like primitives) - their internal state cannot be changed once created.</p></li><li class="list__item" id="z7saqvi_32"><p id="z7saqvi_40">Value Objects usually encapsulate a small number of primitive values or other Value Objects.</p></li><li class="list__item" id="z7saqvi_33"><p id="z7saqvi_41">If they encapsulate reference types, then those types MUST themselves be immutable.</p></li><li class="list__item" id="z7saqvi_34"><p id="z7saqvi_42">Value Object implement content equality by overriding the equals() and the getHash() methods for testing the equality of contents.</p></li><li class="list__item" id="z7saqvi_35"><p id="z7saqvi_43">Value Object implement override the toString() method.</p></li><li class="list__item" id="z7saqvi_36"><p id="z7saqvi_44">We frequently create static final instances for common values. This means we don't have to create new physical instances for common values, which can be an issue in large systems. Because the Value Object is immutable, there is no problem providing a static instance.</p></li><li class="list__item" id="z7saqvi_37"><p id="z7saqvi_45">Being immutable, value objects are simpler to use and reason about since they can&rsquo;t change state after creation. They are also inherently thread-safe, because multiple threads can use them simultaneously without risk of their state being changed.</p></li></ul><p id="z7saqvi_26">A template for a ValueObject.</p><div class="code-block" data-lang="java">
+import java.util.Objects;
+
+public final class ValueObject {
+
+    //Create a Constant object that represents a common value such as Zero or One, which can be used for initialization
+    public final static ValueObject Zero = new ValueObject(0);
+    public final static ValueObject One  = new ValueObject(1);
+  
+    private final int value;
+
+    public ValueObject(int value) {
+        this.value = value;
+    }
+
+    public int getValue() {
+        return value;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) {
+            return true;
+        }
+        if (obj == null || getClass() != obj.getClass()) {
+            return false;
+        }
+        ValueObject that = (ValueObject) obj;
+        return value == that.value;
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(value);
+    }
+    
+    @Override
+    public String toString()
+    {
+    	return String.format(&quot;%d&quot;, value);
+    }
+}
+</div><section class="chapter"><h3 id="the-importance-of-implementing-equals-correctly" data-toc="the-importance-of-implementing-equals-correctly">The importance of implementing <code class="code" id="z7saqvi_56">equals()</code> correctly.</h3><p id="z7saqvi_47">Recall that Java has primitive and reference types.</p><p id="z7saqvi_48"><code class="code" id="z7saqvi_57">==</code> checks value equality for primitive types, but only checks the <span class="emphasis" id="z7saqvi_58">reference</span> equality of two objects (i.e. both sides of the operation are the same instance in memory).</p><p id="z7saqvi_49">The default Object.equals() method also only checks the referential equality of two objects (i.e. equivalent to <code class="code" id="z7saqvi_59">==</code>), so we need to override this default implementation to check the contents of our class to achieve content equality.</p><p id="z7saqvi_50">Writing equals() correctly requires some care. You need to determine which fields participate (usually all of them) and then write the equality test correctly.</p><p id="z7saqvi_51">The signature is <code class="code" id="z7saqvi_60">public boolean equals(Object obj)</code> so you need to deal with <code class="code" id="z7saqvi_61">obj</code> being null and also <code class="code" id="z7saqvi_62">obj</code> being a different class (in both cases return false).</p><p id="z7saqvi_52">Once we have established that we are dealing with a non-null reference value of the same class, then any Java (as do similar languages) has strict rules for <code class="code" id="z7saqvi_63">equals()</code> with non-null object references.</p><ul class="list _bullet" id="z7saqvi_53"><li class="list__item" id="z7saqvi_64"><p id="z7saqvi_68">It must be <span class="control" id="z7saqvi_69">reflexive</span>: for any non-null reference value x, x.equals(x) should return true.</p></li><li class="list__item" id="z7saqvi_65"><p id="z7saqvi_70">It must be <span class="control" id="z7saqvi_71">symmetric</span>: for any non-null reference values x and y, x.equals(y) should return true if and only if y.equals(x) returns true.</p></li><li class="list__item" id="z7saqvi_66"><p id="z7saqvi_72">It must be <span class="control" id="z7saqvi_73">transitive</span>: for any non-null reference values x, y, and z, if x.equals(y) returns true and y.equals(z) returns true, then x.equals(z) should return true.</p></li><li class="list__item" id="z7saqvi_67"><p id="z7saqvi_74">It must be <span class="control" id="z7saqvi_75">consistent</span>: for any non-null reference values x and y, multiple invocations of x.equals(y) consistently return true or consistently return false, provided no information used in equals comparisons on the objects is modified.</p></li></ul><aside class="prompt" data-type="tip" data-title="" id="z7saqvi_54"><p id="z7saqvi_76">⚠ The <code class="code" id="z7saqvi_77">equals</code> method of the Java String class is case-sensitive (i.e. the character sequence must be identical), but you might want to use <code class="code" id="z7saqvi_78">equalsIgnoreCase</code> version to get a case-insensitive test.</p></aside><aside class="prompt" data-type="tip" data-title="" id="z7saqvi_55"><p id="z7saqvi_79">⚠ Defining what equals() means when comparing two collections involved depends on if the collections are ordered, in which case ordering matters, or unordered, in which case you are only interested if they have the same contents. Java Sets can help you here.</p></aside></section><section class="chapter"><h3 id="the-importance-of-implementing-hashcode-as-well-as-equals" data-toc="the-importance-of-implementing-hashcode-as-well-as-equals">The importance of implementing <code class="code" id="z7saqvi_87">hashCode()</code> as well as <code class="code" id="z7saqvi_88">equals()</code>.</h3><aside class="prompt" data-type="tip" data-title="" id="z7saqvi_81"><p id="z7saqvi_89">⚠ If you implement <code class="code" id="z7saqvi_90">equals()</code> you must implement <code class="code" id="z7saqvi_91">hashCode() and vice-versa</code>.</p></aside><p id="z7saqvi_82">Some algorithms and data structures use the hash code value as a representation of a contents of the object - most notably the HashMap, which uses the hash code to decide which bucket should hold a key-value pair.</p><p id="z7saqvi_83">As with <code class="code" id="z7saqvi_92">equals()</code>, there are a set of rules for implementing the <code class="code" id="z7saqvi_93">hashCode()</code> method.</p><ul class="list _bullet" id="z7saqvi_84"><li class="list__item" id="z7saqvi_94"><p id="z7saqvi_97">It must be <span class="control" id="z7saqvi_98">consistent</span> like <code class="code" id="z7saqvi_99">equals</code>: <code class="code" id="z7saqvi_100">hashCode()</code> must consistently return the same integer, provided no information used in equals comparisons on the object is modified.</p></li><li class="list__item" id="z7saqvi_95"><p id="z7saqvi_101">If two objects are equal according to the <code class="code" id="z7saqvi_102">equals()</code> method, their <code class="code" id="z7saqvi_103">hashCode()</code> methods must return the same integer value.</p></li><li class="list__item" id="z7saqvi_96"><p id="z7saqvi_104">Hash codes are not necessarily unique, but a good hashCode() method implementation distributes values widely.</p></li></ul><aside class="prompt" data-type="tip" data-title="" id="z7saqvi_85"><p id="z7saqvi_105">☑ We strongly advise you use <code class="code" id="z7saqvi_106">static int hash(Object... values)</code> method of <code class="code" id="z7saqvi_107">java.util.Objects</code> is helpful in generating suitable hash values when there are more than one field involved in the <code class="code" id="z7saqvi_108">equals</code>. This is surprisingly hard to do well yourself.</p></aside><aside class="prompt" data-type="tip" data-title="" id="z7saqvi_86"><p id="z7saqvi_109">☑ If the Value Object is immutable (which it should be) you could calculate the hash value at construction time, and save the computation every time hashCode() is called.</p></aside></section></section><section class="chapter"><h2 id="value-objects-a-worked-example" data-toc="value-objects-a-worked-example">Value Objects - A worked example</h2><p id="z7saqvi_110">Our Product class isn't very useful at present because it has nothing that identifies the product. For the product to be sold in a shop or stocked in a warehouse, are going to need a numeric identity that can be printed on a barcode and scanned in the warehouse or at a Point of Sale (POS) in a shop.</p><p id="z7saqvi_111">Packaged products usually have the identity barcode on the packaging. Clothing (garments) typically have the identity barcode on a 'swing ticket' so a garment can be hung on a rail or hanger without any packaging.</p><p id="z7saqvi_112">There is a global standard for product ids called the GTIN or Global Trade Item Number (GS1 2024) so that products can be uniquely identified through the supply chain. The standard also specifies how a GTIN number should be represented as a barcode.</p><p id="z7saqvi_113">A GTIN-13 code has 13 digits</p><div class="table-wrapper"><table class="wide" id="z7saqvi_114"><thead><tr class="ijRowHead" id="z7saqvi_125"><th id="z7saqvi_127"><p>Company Prefix</p></th><th id="z7saqvi_128"><p>Item Reference</p></th><th id="z7saqvi_129"><p>Checksum Digit</p></th></tr></thead><tbody><tr id="z7saqvi_126"><td id="z7saqvi_130"><p>6 digits</p></td><td id="z7saqvi_131"><p>6 digits</p></td><td id="z7saqvi_132"><p>1 digit</p></td></tr></tbody></table></div><ul class="list _bullet" id="z7saqvi_115"><li class="list__item" id="z7saqvi_133"><p id="z7saqvi_136">A 6-digit GS1 Company Prefix which is centrally allocated by the GS1 organisation to a company that wants to create a unique product id. The GS1 organisation is responsible for ensuring that every company has a unique company prefix.</p></li><li class="list__item" id="z7saqvi_134"><p id="z7saqvi_137">A 6-digit Item Reference which is created internally by the company - it is their responsibility to ensure that the Item Reference is unique for all the products they are responsible for.</p></li><li class="list__item" id="z7saqvi_135"><p id="z7saqvi_138">A 1-digit check digit which is calculated from the combination of the Company Prefix and the Item Reference and provides a check that a barcode reader can use to make sure all the digits have been read correctly by recalculating the check digit and checking it matches.</p></li></ul><p id="z7saqvi_116">This make our product id an ideal candidate for a Value Object because it is much richer than just a string of numbers.</p><p id="z7saqvi_117">We start by making a class representing the 6-digit company prefix</p><div class="code-block" data-lang="java">
+import java.util.Objects;
+
+final class CompanyPrefix {
+    public static final int LENGTH = 6;
+    private static final int MIN = 100000; //there is a rule about GS1 Company Prefixes being &gt; 100000
+    private static final int MAX = 999999;
+    private final int value;
+
+
+    public CompanyPrefix(int value) throws InvalidNumberRangeException {
+        if (value &lt; MIN || value &gt; MAX) {
+            throw new InvalidNumberRangeException(value, MIN, MAX);
+        }
+        this.value = value;
+    }
+
+    public int get() {
+        return value;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) {
+            return true;
+        }
+        if (obj == null || getClass() != obj.getClass()) {
+            return false;
+        }
+        CompanyPrefix that = (CompanyPrefix) obj;
+        return value == that.value;
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(value);
+    }
+
+    @Override
+    public String toString() {
+        //pad out with 0s when converting to string
+        return String.format(&quot;%06d&quot;, value);
+    }
+}
+</div><p id="z7saqvi_119">and other representing the Item Reference</p><div class="code-block" data-lang="java">
+
+public final class ItemReference {
+
+    public static final int LENGTH = 6;
+    private static final int MIN = 1;
+    private static final int MAX = 999999;
+    private final int value;
+
+    public ItemReference(int value) throws InvalidNumberRangeException {
+        if (value &lt; MIN || value &gt; MAX) {
+            throw new InvalidNumberRangeException(value, MIN, MAX);
+        }
+        this.value = value;
+    }
+
+    public int get() {
+        return value;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) {
+            return true;
+        }
+        if (obj == null || getClass() != obj.getClass()) {
+            return false;
+        }
+        ItemReference that = (ItemReference) obj;
+        return value == that.value;
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(value);
+    }
+
+    @Override
+    public String toString() {
+        //pad out with 0s when converting to string
+        return String.format(&quot;%06d&quot;, value);
+    }
+}
+</div><p id="z7saqvi_121">Now we can create a GTIN13 value object. It can assume that the CompanyPrefix and ItemReference are valid because of the guarantees provided by those Value Objects. Overloads of <code class="code" id="z7saqvi_139">equals</code> and <code class="code" id="z7saqvi_140">toString</code> are particularly relevant. We can also include a static parse method to convert barcode strings back to GTINs.</p><div class="code-block" data-lang="java">
+import java.util.Objects;
+
+public final class GTIN13 {
+    public static final int LENGTH = CompanyPrefix.LENGTH + ItemReference.LENGTH + 1;
+    private final CompanyPrefix prefix;
+    private final ItemReference itemReference;
+    private final int checksum;
+
+    public GTIN13(CompanyPrefix prefix, ItemReference itemReference) throws InvalidException {
+        this.prefix = prefix;
+        this.itemReference = itemReference;
+        this.checksum = calculateGtinCheckDigit(String.format(&quot;%s%s&quot;, this.prefix, this.itemReference));
+        //post condition is that we have created a valid string representation
+        requireValidGlobalTradeIdentifierString(this.toString());
+    }
+
+    public static GTIN13 parse(String s) throws InvalidException {
+
+        s = requireValidGlobalTradeIdentifierString(s);
+        CompanyPrefix prefix = new CompanyPrefix(Integer.parseInt(s.substring(0, CompanyPrefix.LENGTH)));
+        ItemReference itemReference = new ItemReference(Integer.parseInt(s.substring(CompanyPrefix.LENGTH, LENGTH - 1)));
+        return new GTIN13(prefix, itemReference);
+    }
+
+    public static GTIN13 tryParse(String s) throws InvalidException {
+
+        if (isValid(s)) return parse(s);
+        else return null;
+    }
+
+    static String requireValidGlobalTradeIdentifierString(String s) throws InvalidException {
+        if (!isValidLength(s)) {
+            throw new InvalidLengthException(s, LENGTH);
+        }
+
+        if (!isValidCharacters(s)) {
+            throw new InvalidCharacterException(s);
+        }
+
+        if (!isValidCheckDigit(s)) {
+            throw new InvalidCheckDigitException(s);
+        }
+        return s;
+    }
+
+    public static boolean isValid(String s) {
+        return isValidLength(s) &amp;&amp; isValidCharacters(s) &amp;&amp; isValidCheckDigit(s);
+    }
+
+    static boolean isValidLength(String s) {
+        return Objects.nonNull(s) &amp;&amp; s.length() == LENGTH;
+    }
+
+    static boolean isValidCharacters(String s) {
+        for (int i = 0; i &lt; LENGTH; i++) {
+            if (!Character.isDigit(s.charAt(i))) return false;
+        }
+        return true;
+    }
+
+    static boolean isValidCheckDigit(String s) {
+        return calculateGtinCheckDigit(s.substring(0, LENGTH - 1)) == Character.getNumericValue(s.charAt(LENGTH - 1));
+    }
+
+    //Algorithm from  https://www.gs1.org/services/how-calculate-check-digit-manually
+    static int calculateGtinCheckDigit(String gtinWithoutChecksum) {
+        // Calculate the checksum
+        int sum = 0;
+        for (int i = 0; i &lt; gtinWithoutChecksum.length(); i++) {
+            int digit = Character.getNumericValue(gtinWithoutChecksum.charAt(i));
+            sum += (i % 2 == 0) ? digit : digit * 3;
+        }
+        return (10 - (sum % 10)) % 10;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) {
+            return true;
+        }
+        if (obj == null || getClass() != obj.getClass()) {
+            return false;
+        }
+        GTIN13 that = (GTIN13) obj;
+        return prefix.equals(that.prefix) &amp;&amp; itemReference.equals(that.itemReference) &amp;&amp; checksum == that.checksum;
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(prefix, itemReference, checksum);
+    }
+
+    @Override
+    public String toString() {
+        return String.format(&quot;%s%s%d&quot;, prefix, itemReference, checksum);
+    }
+}
+</div><p id="z7saqvi_123">The override of the equals method allows us to test equality (and note how the test is delegated to the component value objects), say from a scanned barcode string.</p><div class="code-block" data-lang="java">
+CompanyPrefix prefix = new CompanyPrefix(320000);
+ItemReference reference = new ItemReference(377);
+GTIN13 gtin = new GTIN13(prefix,reference);
+GTIN13 scannedGtin = GTIN13.parse(&quot;3200000003774&quot;);
+if(scannedGtin.equals(gtin))
+{
+}
+
+</div></section><section class="chapter"><h2 id="writing-custom-exceptions" data-toc="writing-custom-exceptions">Writing Custom Exceptions</h2><p id="z7saqvi_141">The Java library provides standard exceptions which could be thrown when pre-conditions, post-conditions or invariants are invalid.</p><p id="z7saqvi_142">The above example uses a set of related custom Exception classes which are part of the representation of a GTIN13 identifier. Providing custom typed exceptions separates out the logic of creating the message, makes exceptions independently testable and provides additional context to anyone catching or reading the exception.</p><div class="code-block" data-lang="java">
+public abstract class InvalidException extends Exception {
+    public InvalidException() {
+    }
+
+    public InvalidException(String message) {
+        super(message);
+    }
+}
+
+public class InvalidCharacterException extends InvalidException {
+    public final String invalidString;
+
+    public InvalidCharacterException(String s) {
+        super(String.format(&quot;Invalid character(s) is %s&quot;, s));
+        this.invalidString = s;
+    }
+}
+
+public class InvalidNumberRangeException extends InvalidException {
+    public final int value;
+    public final int min;
+    public final int max;
+
+    public InvalidNumberRangeException(int value, int min, int max) {
+        super(String.format(&quot;Expected %d to be between %d and %d&quot;, value, min, max));
+        this.value = value;
+        this.min = min;
+        this.max = max;
+    }
+}
+
+public class InvalidCheckDigitException extends InvalidException {
+    public final String invalidString;
+
+    public InvalidCheckDigitException(String s) {
+        super(String.format(&quot;invalid check digit in %s&quot;, s));
+        invalidString = s;
+    }
+}
+</div><p id="z7saqvi_144">Parsing an invalid barcode such as &quot;3200000003779&quot; provides a strongly typed exception as well as an informative message.</p><aside class="prompt" data-type="tip" data-title="" id="z7saqvi_145"><p id="z7saqvi_146">Exception in thread &quot;main&quot; globaltradeitemnumber.InvalidCheckDigitException: invalid check digit in 3200000003779</p></aside></section><section class="chapter"><h2 id="dry-primitive-obsessions-and-value-objects" data-toc="dry-primitive-obsessions-and-value-objects">DRY, Primitive Obsessions and Value Objects</h2><p id="z7saqvi_147">Martin and Beck (2019, p78) described the use of primitives and Strings rather than encapsulating them in meaningful classes as <span class="control" id="z7saqvi_152">Primitive Obsession</span> and observed that 'We find many programmers are curiously reluctant to create their own fundamental types'. The cure for Primitive Obsession is to create Value Object style classes that represent concepts in your software product.</p><p id="z7saqvi_148">If there are primitives in your code base chances are that some code such as checks, arithmetic, number rounding etc. will be repeated within the code base. Identifying these primitives and encapsulating them in meaningful classes means that potentially repeated code is put in one place - the encapsulated class. This is a powerful application of the <span class="control" id="z7saqvi_153">Don't repeat yourself (DRY)</span> principle.</p><p id="z7saqvi_149">The <span class="control" id="z7saqvi_154">DRY</span> principal states that 'Every piece of knowledge must have a single, unambiguous, authoritative representation within a system.' (Thomas and Hunt, 2020 Ch 8 Topic 9). When knowledge of any kind is duplicated within a software system it increases the likelihood that a change will be made in one place will but not duplicated successfully in all the others, leading to the software to diverge in its handling of that piece of knowledge.</p><aside class="prompt" data-type="tip" data-title="" id="z7saqvi_150"><p id="z7saqvi_155">☑ Write classes conforming to the <span class="control" id="z7saqvi_156">Value Object</span> pattern and use as types in class fields, method parameters and method returns as replacements for primitives wherever possible. There is a small amount of up-front work to create and test the class, but the benefits are gained every time the value object is used in client code.</p></aside><aside class="prompt" data-type="tip" data-title="" id="z7saqvi_151"><p id="z7saqvi_157">☑ When designing classes think about how you are enforcing pre-conditions, post-conditions and class invariants at the very least for the public operations. Code that enforces pre-conditions, post-conditions and class invariants will throw exceptions. Consider creating custom exception classes that encapsulate useful information for any client handling the exception. These exception types become part of your public API.</p></aside></section><section class="chapter"><h2 id="a-note-on-checksums-in-identities" data-toc="a-note-on-checksums-in-identities">A Note on Checksums in identities</h2><p id="z7saqvi_158">A GTIN13 string is typically read using a barcode scanner but can be typed into a user interface (for example when a product won't scan at the till and the salesperson has to type the code instead - this is why the GTIN13 number is also printed below the barcode -it's called the Human Readable Interpretation in the specification). The checksum calculation provides a check that the number has been read or typed in correctly.</p><p id="z7saqvi_159">Another example is the long card number on a credit or debit card, which is called the PAN (Primary Account Number). Again, this is something that can be machine read (via the magnetic stripe on the back of the card) or typed in (as would be the case when typing a card number into a website or mobile app). Payment card (the generic term for credit, debit and charge cards) numbers also have a check digit, which is calculated using the <a href="https://en.wikipedia.org/wiki/Luhn_algorithm" id="z7saqvi_164" data-external="true" rel="noopener noreferrer" target="_blank">Luhn</a> algorithm.</p><p id="z7saqvi_160">Unlike GTINS, PAN Numbers can have different lengths but consist of a <span class="control" id="z7saqvi_165">bank identification number</span> (BIN), an individual customer account number and a check digit.</p><div class="table-wrapper"><table class="wide" id="z7saqvi_161"><thead><tr class="ijRowHead" id="z7saqvi_166"><th id="z7saqvi_168"><p>BIN Number</p></th><th id="z7saqvi_169"><p>Customer Account Number</p></th><th id="z7saqvi_170"><p>Checksum Digit</p></th></tr></thead><tbody><tr id="z7saqvi_167"><td id="z7saqvi_171"><p>6-8 digits</p></td><td id="z7saqvi_172"><p>up to 12 digits</p></td><td id="z7saqvi_173"><p>1 digit</p></td></tr></tbody></table></div><p id="z7saqvi_162"><span class="control" id="z7saqvi_174">International Mobile Equipment Identity</span> (IEMI) numbers (the unique identifier used with mobile phones) is another example of an identifier whose last digit is a checksum calculated using the <a href="https://en.wikipedia.org/wiki/Luhn_algorithm" id="z7saqvi_175" data-external="true" rel="noopener noreferrer" target="_blank">Luhn</a> algorithm.</p><aside class="prompt" data-type="tip" data-title="" id="z7saqvi_163"><p id="z7saqvi_176">☑ If you ever need to create an identifier that would be scanned or machine read or typed in, then you should probably consider adding a checksum digit to ensure that the user has read or typed the number correctly. As we have seen the use of Value Objects puts all the handling and validation of checksums in one place and makes it simpler for others to use the identifier without having to worry about parsing and calculating the checksum values.</p></aside></section><section class="chapter"><h2 id="uuids-universally-unique-identifiers" data-toc="uuids-universally-unique-identifiers">UUIDs - Universally Unique Identifiers</h2><p id="z7saqvi_177">In computer science, a UUID is a <span class="control" id="z7saqvi_181">Universally Unique Identifier</span>. You may also see the term <span class="control" id="z7saqvi_182">GUID</span> or <span class="control" id="z7saqvi_183">Globally Unique Identifier</span>.</p><p id="z7saqvi_178">A UUID algorithm generates a 128-bit number, which is usually displayed to a human as a 36 character hex string, such as <code class="code" id="z7saqvi_184">4479e710-6ab0-4521-ac7b-ca34752774f2</code>. In Java the <code class="code" id="z7saqvi_185">java.util.UUID</code> class is a Value Object representing a UUID. The static method <code class="code" id="z7saqvi_186">public static UUID randomUUID()</code> generates a new random UUID.</p><p id="z7saqvi_179">Unlike GTINs or PANs there is no central authority creating UUIDs - they are essentially random numbers being generated by an algorithm. Technically they are not guaranteed to be unique but the chance of a collision (two UUIDs being identical) is vanishingly small. Consequently, UUIDs are widely used to generate unique identifiers within computer programs without having to use a central source. UUIDs are applied to identify things like requests, responses, messages, log entries, versions and access tokens. There is no check digit in a UUID which makes them a poor choice for manual data entry or scanning.</p><p id="z7saqvi_180">A common use case for a UUID is the primary key for a database record as any machine in a network can generate a unique UUID without the overhead of calling some central service. Whilst using UUIDs for primary keys is fine in student projects, there can be issues using UUIDs as primary keys in real-world database systems owning to their size (128bits) and randomness.</p></section><div class="last-modified">08 August 2025</div><div data-feedback-placeholder="true"></div><div class="navigation-links _bottom"><a href="singleclassdesign02.html" class="navigation-links__prev">Design of a single class - Contracts</a><a href="polymorphism.html" class="navigation-links__next">Polymorphism</a></div></article><div id="disqus_thread"></div></div></section></main></div><script src="https://resources.jetbrains.com/writerside/apidoc/6.26.0-b913/app.js"></script></body></html>

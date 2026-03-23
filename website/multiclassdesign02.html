@@ -1,0 +1,440 @@
+<!DOCTYPE html SYSTEM "about:legacy-compat">
+<html lang="en-US" data-preset="contrast" data-primary-color="#307FFF"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="robots" content="noindex"><meta name="built-on" content="2026-03-23T15:44:20.43227989"><title>Design with multiple classes - Patterns for the co-ordination of multiple classes | Software Design and Architecture</title><script type="application/json" id="virtual-toc-data">[{"id":"the-facade-pattern","level":0,"title":"The Facade Pattern","anchor":"#the-facade-pattern"},{"id":"controllers","level":0,"title":"Controllers","anchor":"#controllers"},{"id":"the-mediator-pattern","level":0,"title":"The Mediator Pattern","anchor":"#the-mediator-pattern"}]</script><script type="application/json" id="topic-shortcuts"></script><link href="https://resources.jetbrains.com/writerside/apidoc/6.26.0-b913/app.css" rel="stylesheet"><meta name="msapplication-TileColor" content="#000000"><link rel="apple-touch-icon" sizes="180x180" href="https://jetbrains.com/apple-touch-icon.png"><link rel="icon" type="image/png" sizes="32x32" href="https://jetbrains.com/favicon-32x32.png"><link rel="icon" type="image/png" sizes="16x16" href="https://jetbrains.com/favicon-16x16.png"><meta name="msapplication-TileImage" content="https://resources.jetbrains.com/storage/ui/favicons/mstile-144x144.png"><meta name="msapplication-square70x70logo" content="https://resources.jetbrains.com/storage/ui/favicons/mstile-70x70.png"><meta name="msapplication-square150x150logo" content="https://resources.jetbrains.com/storage/ui/favicons/mstile-150x150.png"><meta name="msapplication-wide310x150logo" content="https://resources.jetbrains.com/storage/ui/favicons/mstile-310x150.png"><meta name="msapplication-square310x310logo" content="https://resources.jetbrains.com/storage/ui/favicons/mstile-310x310.png"><meta name="image" content=""><!-- Open Graph --><meta property="og:title" content="Design with multiple classes - Patterns for the co-ordination of multiple classes | Software Design and Architecture"><meta property="og:description" content=""><meta property="og:image" content=""><meta property="og:site_name" content="Software Design and Architecture Help"><meta property="og:type" content="website"><meta property="og:locale" content="en_US"><meta property="og:url" content="writerside-documentation/multiclassdesign02.html"><!-- End Open Graph --><!-- Twitter Card --><meta name="twitter:card" content="summary_large_image"><meta name="twitter:site" content=""><meta name="twitter:title" content="Design with multiple classes - Patterns for the co-ordination of multiple classes | Software Design and Architecture"><meta name="twitter:description" content=""><meta name="twitter:creator" content=""><meta name="twitter:image:src" content=""><!-- End Twitter Card --><!-- Schema.org WebPage --><script type="application/ld+json">{
+    "@context": "http://schema.org",
+    "@type": "WebPage",
+    "@id": "writerside-documentation/multiclassdesign02.html#webpage",
+    "url": "writerside-documentation/multiclassdesign02.html",
+    "name": "Design with multiple classes - Patterns for the co-ordination of multiple classes | Software Design and Architecture",
+    "description": "",
+    "image": "",
+    "inLanguage":"en-US"
+}</script><!-- End Schema.org --><!-- Schema.org WebSite --><script type="application/ld+json">{
+    "@type": "WebSite",
+    "@id": "writerside-documentation/#website",
+    "url": "writerside-documentation/",
+    "name": "Software Design and Architecture Help"
+}</script><!-- End Schema.org --></head><body data-id="MultiClassDesign02" data-main-title="Design with multiple classes - Patterns for the co-ordination of multiple classes" data-article-props="{&quot;seeAlsoStyle&quot;:&quot;links&quot;}" data-template="article" data-breadcrumbs=""><div class="wrapper"><main class="panel _main"><header class="panel__header"><div class="container"><h3>Software Design and Architecture  Help</h3><div class="panel-trigger"></div></div></header><section class="panel__content"><div class="container"><article class="article" data-shortcut-switcher="inactive"><h1 data-toc="MultiClassDesign02" id="MultiClassDesign02.md">Design with multiple classes - Patterns for the co-ordination of multiple classes</h1><p id="-9fokwk_3">In any software system you will need to co-ordinate the use of multiple classes.</p><p id="-9fokwk_4">One way of getting classes to collaborate is for classes take dependencies on other classes and call methods on those classes directly - many classes knowing about many other classes. We have discussed the issues with this above, not the least making it hard to test individual classes. The solution is to create additional classes that take responsibility for communicating between classes. There are a couple of design patterns that will help.</p><p id="-9fokwk_5">In this example we are putting products into an e-commerce basket, but also applying an automatic discount depending on the total value of the products in the basket. A user can also apply a discount code, and our requirement is that we grant the highest of the value-based discount or the discount granted by the discount code. In the examples we only have two classes, a <code class="code" id="-9fokwk_12">Basket</code> and a <code class="code" id="-9fokwk_13">Discounter</code> to co-ordinate, but the patterns apply when there are more classes to co-ordinate.</p><p id="-9fokwk_6">In both cases we want to provide a simple way for the client code to interact that hides the complexity of the interactions between the <code class="code" id="-9fokwk_14">Basket</code> and a <code class="code" id="-9fokwk_15">Discounter</code> making them easier to use. The client code only wants to do two things, add a <code class="code" id="-9fokwk_16">Product</code> to a <code class="code" id="-9fokwk_17">Basket</code> and apply a discount code provided by a user - the mechanics of how baskets and discounts interact should be hidden.</p><p id="-9fokwk_7">Our examples use a Value Object describing a Product.</p><div class="code-block" data-lang="java">
+class Product {
+
+    private final String code;
+    private final double  price;
+
+    Product(String code, double price) {
+        this.code = code;
+        this.price = price;
+    }
+
+    public String getCode() {
+        return code;
+    }
+
+    public double getPrice() {
+        return price;
+    }
+}
+</div><section class="chapter"><h2 id="the-facade-pattern" data-toc="the-facade-pattern">The Facade Pattern</h2><p id="-9fokwk_18">The name <span class="control" id="-9fokwk_35">Facade</span> comes from the front of a building which presents a pleasing view and hiding the complex internal structure (the walls and floors) behind it. The Facade pattern does the same for software, a <span class="control" id="-9fokwk_36">Facade</span> provides a pleasing, high-level API that hides the complexities of an underlying set of classes, exposing only what's necessary for the client code.</p><p id="-9fokwk_19">In this example, we start with the two classes that we are going to put behind the Facade. The <code class="code" id="-9fokwk_37">Basket</code> class holds a list of products and provides a sum of product values less a discount. It is very simple and testable as it is not coupled to any particular way of determining the discount.</p><div class="code-block" data-lang="java">
+class Basket{
+
+    private final List&lt;Product&gt; products = new ArrayList&lt;&gt;();
+    double discount = 0;
+
+
+    public void addProduct(Product product) {
+        products.add(product);
+    }
+
+    public void removeProduct(Product product) {
+        products.remove(product);
+    }
+
+    public double getTotal() {
+        return products.stream().mapToDouble(Product::getPrice).sum();
+    }
+
+    public void setDiscount(double discount) {
+        this.discount = discount;
+    }
+
+    public double getTotalWithDiscount() {
+        return getTotal() * (1d - discount);
+    }
+}
+</div><p id="-9fokwk_21">The <code class="code" id="-9fokwk_38">Discounter</code> class set the highest of a 20% discount (if the total value is &gt; 100) or a discount set by a discount code. <code class="code" id="-9fokwk_39">Discounter</code> doesn't know anything about the <code class="code" id="-9fokwk_40">Basket</code>.</p><div class="code-block" data-lang="java">
+class Discounter  {
+
+    private static final double discount0 = 0.0d;
+    private static final double discount10 = 0.1d;
+    private static final double discount20 = 0.2d;
+    private static final double discount30 = 0.3d;
+    private static final double discount40 = 0.4d;
+    private static final double discount50 = 0.5d;
+
+    private double discount = 0d;
+
+
+    public double getDiscount() {
+        return discount;
+    }
+
+    public void setTotal(double total) {
+        double totalDiscount = total &gt; 100d ? discount20 : discount0;
+        discount = Math.max(discount, totalDiscount);
+    }
+
+    public void setDiscountCode(String code) {
+
+        double codeDiscount = switch (code) {
+            case &quot;Discount10&quot; -&gt; discount10;
+            case &quot;Discount20&quot; -&gt; discount20;
+            case &quot;Discount30&quot; -&gt; discount30;
+            case &quot;Discount40&quot; -&gt; discount40;
+            case &quot;Discount50&quot; -&gt; discount50;
+            default -&gt; 0.0d;
+        };
+
+        discount = Math.max(discount, codeDiscount);
+    }
+}
+</div><p id="-9fokwk_23">We create a <code class="code" id="-9fokwk_41">Facade</code> class that provides a simple API across both the <code class="code" id="-9fokwk_42">Basket</code> and <code class="code" id="-9fokwk_43">Discounter</code> classes and manages their interactions.</p><div class="code-block" data-lang="java">
+class Facade {
+
+    private final Basket basket = new Basket();
+    private final Discounter discounter = new Discounter();
+
+    public void addProduct(Product product) {
+        basket.addProduct(product);
+        discounter.setTotal(basket.getTotal());
+        basket.setDiscount(discounter.getDiscount());
+    }
+
+    public void setDiscountCode(String code) {
+        discounter.setDiscountCode(code);
+        basket.setDiscount(discounter.getDiscount());
+    }
+
+    public double getTotalWithDiscount() {
+        return basket.getTotalWithDiscount();
+    }
+}
+</div><p id="-9fokwk_25">The client code talks to the Facade rather than the objects behind the Facade.</p><div class="code-block" data-lang="java">
+
+Product a1 = new Product(&quot;A1&quot;, 50.0d);
+Product a2 = new Product(&quot;A2&quot;, 250.0d);
+
+Facade facade = new Facade();
+facade.addProduct(a1);
+System.out.format(&quot;Using Facade: Current price with discount: %s%n&quot;, facade.getTotalWithDiscount());
+facade.addProduct(a2);
+System.out.format(&quot;Using Facade: Current price with discount: %s%n&quot;, facade.getTotalWithDiscount());
+facade.setDiscountCode(&quot;Discount50&quot;);
+System.out.format(&quot;Using Facade: Current price with discount: %s%n&quot;, facade.getTotalWithDiscount());
+
+//Output
+//Using Facade: Current price with discount: 50.0
+//Using Facade: Current price with discount: 240.0
+//Using Facade: Current price with discount: 150.0
+
+</div><p id="-9fokwk_27">The Facade has a limited API that is specific to the needs of the client code. Behind the Facade lies the actual classes and interactions that do the work. <span class="control" id="-9fokwk_44">Facade</span> gives us benefits.</p><ul class="list _bullet" id="-9fokwk_28"><li class="list__item" id="-9fokwk_45"><p id="-9fokwk_47">It hides the names and APIs of the classes performing the work - it is significantly easier for the client code to deal with the Facade than with the <span class="control" id="-9fokwk_48">Basket</span> and <span class="control" id="-9fokwk_49">Discounter</span> classes.</p></li><li class="list__item" id="-9fokwk_46"><p id="-9fokwk_50">We could replace the <span class="control" id="-9fokwk_51">Basket</span> and <span class="control" id="-9fokwk_52">Discounter</span> classes with something else and the client code would not need to change.</p></li></ul><aside class="prompt" data-type="tip" data-title="" id="-9fokwk_29"><p id="-9fokwk_53">⚠ If the underlying classes are public, it is easy for a client to ignore your Facade and work directly with the underlying classes. This is fine if the intention of the Facade is to provide a simplified way of achieving a common goal, with the intention that the client should use the underlying classes for more uncommon or complex case, but less so if the intention is to hide implementation details, so visibility is important.</p></aside><aside class="prompt" data-type="tip" data-title="" id="-9fokwk_30"><p id="-9fokwk_54">⚠ Beware creating Facades that have more than one use case - it is tempting to add more and more functionality to the Facade API, but the objective of the Facade pattern is to simplify things for the client, and a complex Facade API that covers many use cases re-introduces complexity and is likely to be a Single Responsibility Principle (SRP) violation as well.</p></aside><p id="-9fokwk_31">The general form of the Facade pattern:</p><div class="code-block" data-lang="java">
+
+class SubSystemClass1 {
+    public void method1() {
+    }
+}
+
+class SubSystemClass2 {
+    public void method2() {
+    }
+}
+
+class SubSystemClass3 {
+    public void method3() {
+    }
+}
+
+class Facade {
+
+    private final SubSystemClass1 class1 = new SubSystemClass1();
+    private final SubSystemClass2 class2 = new SubSystemClass2();
+    private final SubSystemClass3 class3 = new SubSystemClass3();
+
+    public void methodA() {
+        class1.method1();
+        class2.method2();
+    }
+
+    public void methodB() {
+        class2.method2();
+        class3.method3();
+    }
+}
+
+
+//Usage
+Facade facade = new Facade();
+facade.methodA();
+facade.methodB();
+</div><section class="chapter"><h3 id="stateful-and-stateless-fa-ades" data-toc="stateful-and-stateless-fa-ades">Stateful and Stateless Fa&ccedil;ades</h3><p id="-9fokwk_55">As a Fa&ccedil;ade is a normal class, it can hold <span class="emphasis" id="-9fokwk_61">state</span> in private fields (instance variables) and use these fields to hold information about past calls which modifies the behavior of future calls.</p><p id="-9fokwk_56">In this example the StatefulFacade holds references to long-lived instances of SubSystemClasses which could themselves be stateful. In this case the client may have to retain a reference to the facade and call its methods in a specific order.</p><div class="code-block" data-lang="java">
+final class StatefulFacade {
+
+    private final SubSystemClass1 class1 = new SubSystemClass1();
+    private final SubSystemClass2 class2 = new SubSystemClass2();
+    private final SubSystemClass3 class3 = new SubSystemClass3();
+
+    public void methodA() {
+        class1.method1();
+        class2.method2();
+    }
+
+    public void methodB() {
+        class2.method2();
+        class3.method3();
+    }
+}
+</div><p id="-9fokwk_58">With a Stateless fa&ccedil;ade a client does not have to retain a reference to the fa&ccedil;ade, and can call any method in any order.</p><div class="code-block" data-lang="java">
+
+final class StatelessFacade {
+
+     void methodA() {
+        final SubSystemClass1 class1 = new SubSystemClass1();
+        final SubSystemClass2 class2 = new SubSystemClass2();
+        class1.method1();
+        class2.method2();
+    }
+
+    void methodB() {
+        final SubSystemClass2 class2 = new SubSystemClass2();
+        final SubSystemClass3 class3 = new SubSystemClass3();
+        class2.method2();
+        class3.method3();
+    }
+}
+</div><aside class="prompt" data-type="tip" data-title="" id="-9fokwk_60"><p id="-9fokwk_62">⚠ A stateless Fa&ccedil;ade may have fields (instance variables) but those fields themselves must be immutable or stateless.</p></aside></section><section class="chapter"><h3 id="services" data-toc="services">Services</h3><p id="-9fokwk_63">A common term in software architecture is <span class="control" id="-9fokwk_74">service</span>.</p><p id="-9fokwk_64">UML defines a <span class="control" id="-9fokwk_75">service</span> as a stateless, functional component (a modular, replaceable part of a system) (Object Management Group 2017 22.3).</p><p id="-9fokwk_65">A service might provide a service such as sending an Email or a service that implements part of a business domain such as an Ordering service, or a Product Search service.</p><p id="-9fokwk_66">A stateless Fa&ccedil;ade is a common way to implement a service API.</p><p id="-9fokwk_67">First define the service interface. Services can then have different implementations (like Strategy), for example real and fake implementations or have their lifetimes managed somewhere else in the system.</p><div class="code-block" data-lang="java">
+interface Service {
+    void methodA();
+    void methodB();
+}
+</div><p id="-9fokwk_69">The Fa&ccedil;ade then implements the interface.</p><div class="code-block" data-lang="java">
+
+final class ServiceFacade implements Service {
+
+     public void methodA() {
+        final SubSystemClass1 class1 = new SubSystemClass1();
+        final SubSystemClass2 class2 = new SubSystemClass2();
+        class1.method1();
+        class2.method2();
+    }
+
+    public void methodB() {
+        final SubSystemClass2 class2 = new SubSystemClass2();
+        final SubSystemClass3 class3 = new SubSystemClass3();
+        class2.method2();
+        class3.method3();
+    }
+}
+</div><p id="-9fokwk_71">The stateless Facade pattern (Service) is often used as a proxy to a networked service (i.e., a component running in a different process or computer) to the client code.</p><p id="-9fokwk_72">A <span class="control" id="-9fokwk_76">Microservice</span> architecture is an architecture where separate services implement different parts of a business domain and are run remotely from the client (commonly in Docker style containers). <span class="control" id="-9fokwk_77">Microservices</span> means small, discrete, independently deployable services that when combined provide a whole business system.</p><aside class="prompt" data-type="tip" data-title="" id="-9fokwk_73"><p id="-9fokwk_78">⚠ There is little difference between how the <span class="control" id="-9fokwk_79">Service</span> pattern and the <span class="control" id="-9fokwk_80">Strategy</span> pattern are implemented and used. Services are usually much bigger in functionality (they are components) whereas Strategies are typically smaller algorithms. The concrete implementation of a Service is typically selected once when the application starts and not changed for the application lifetime, whereas the point of strategies is they encapsulate different algorithms, and the client code is constantly choosing at runtime (perhaps based on user input) which concrete strategy to use for a given situation.</p></aside></section></section><section class="chapter"><h2 id="controllers" data-toc="controllers">Controllers</h2><p id="-9fokwk_81">Another special case of a stateless Fa&ccedil;ade handing user input and application flow is the <span class="control" id="-9fokwk_85">Controller</span> in an MVC (Model-View-Controller) pattern - a common architecture in HTTP Web Services and GUI Frameworks.</p><p id="-9fokwk_82">The Controller in MVC:</p><ul class="list _bullet" id="-9fokwk_83"><li class="list__item" id="-9fokwk_86"><p id="-9fokwk_89">Receives requests from the user interface</p></li><li class="list__item" id="-9fokwk_87"><p id="-9fokwk_90">Interacts with the <span class="control" id="-9fokwk_91">Model</span> (data and business logic) to retrieve or manipulate data.</p></li><li class="list__item" id="-9fokwk_88"><p id="-9fokwk_92">Selects the appropriate <span class="control" id="-9fokwk_93">View</span> to present the results to the user.</p></li></ul><p id="-9fokwk_84">The Controller has a limited API that is specific to the needs of the client code. Behind the Controller are the actual classes and interactions that do the work.</p></section><section class="chapter"><h2 id="the-mediator-pattern" data-toc="the-mediator-pattern">The Mediator Pattern</h2><p id="-9fokwk_94">The job of the <span class="control" id="-9fokwk_108">Mediator</span> pattern is also to provide communication between classes. Unlike the <span class="control" id="-9fokwk_109">Facade</span> pattern, client code talks directly to individual classes (so they need to be public), but the <span class="control" id="-9fokwk_110">Mediator</span> manages the communication between classes &quot;behind the scenes&quot;.</p><p id="-9fokwk_95">In this example, we start with the two classes that we are going to connect to the Mediator. As in the previous example, The <code class="code" id="-9fokwk_111">Basket</code> class holds a list of products and provides a sum of values less a discount. The <code class="code" id="-9fokwk_112">Discounter</code> class set the highest discount.</p><p id="-9fokwk_96">First we need two interfaces. Colleague and Mediator</p><div class="code-block" data-lang="java">
+interface Colleague {
+}
+
+interface Mediator {
+    void onChanged(Colleague colleague);
+}
+</div><p id="-9fokwk_98">Both <code class="code" id="-9fokwk_113">Basket</code> and <code class="code" id="-9fokwk_114">Discounter</code> classes implement a <code class="code" id="-9fokwk_115">Colleague</code> interface and have a reference to the <code class="code" id="-9fokwk_116">Mediator interface</code>. Both classes notify the Mediator interface when something changes using the <code class="code" id="-9fokwk_117">onChanged</code> method. The analogy is of colleagues in an office both reporting to a manager (the Mediator) who listens to one colleague and issues instructions to the other(s).</p><div class="code-block" data-lang="java">
+
+class Basket implements Colleague {
+
+    private final List&lt;Product&gt; products = new ArrayList&lt;&gt;();
+    private final Mediator mediator;
+    double discount = 0;
+
+    public Basket(Mediator mediator) {
+        this.mediator = mediator;
+    }
+
+    public void addProduct(Product product) {
+        products.add(product);
+        mediator.onChanged(this);
+    }
+
+    public void removeProduct(Product product) {
+        products.remove(product);
+        mediator.onChanged(this);
+    }
+
+    public double getTotal() {
+        return products.stream().mapToDouble(Product::getPrice).sum();
+    }
+
+    public void setDiscount(double discount) {
+        this.discount = discount;
+    }
+
+    public double getTotalWithDiscount() {
+        return getTotal() * (1d - discount);
+    }
+}
+
+class Discounter implements Colleague {
+
+    private static final double discount0 = 0.0d;
+    private static final double discount10 = 0.1d;
+    private static final double discount20 = 0.2d;
+    private static final double discount30 = 0.3d;
+    private static final double discount40 = 0.4d;
+    private static final double discount50 = 0.5d;
+
+    private final Mediator mediator;
+    private double discount = 0d;
+
+    public Discounter(Mediator mediator) {
+        this.mediator = mediator;
+    }
+
+    public double getDiscount() {
+        return discount;
+    }
+
+    public void setTotal(double total) {
+        double totalDiscount = total &gt; 100d ? discount20 : discount0;
+        discount = Math.max(discount, totalDiscount);
+        mediator.onChanged(this);
+    }
+
+    public void setDiscountCode(String code) {
+
+        double codeDiscount = switch (code) {
+            case &quot;Discount10&quot; -&gt; discount10;
+            case &quot;Discount20&quot; -&gt; discount20;
+            case &quot;Discount30&quot; -&gt; discount30;
+            case &quot;Discount40&quot; -&gt; discount40;
+            case &quot;Discount50&quot; -&gt; discount50;
+            default -&gt; 0.0d;
+        };
+
+        discount = Math.max(discount, codeDiscount);
+        mediator.onChanged(this);
+
+    }
+}
+</div><p id="-9fokwk_100">Finally, we create a concrete implementation of the <code class="code" id="-9fokwk_118">Mediator interface</code>, in this example the class is <code class="code" id="-9fokwk_119">PricingMediator</code>. The <code class="code" id="-9fokwk_120">PricingMediator</code> holds references to the concrete <code class="code" id="-9fokwk_121">Basket</code> and <code class="code" id="-9fokwk_122">Discounter</code> classes via the <code class="code" id="-9fokwk_123">registerColleagues</code> method, and uses reference equality (the <code class="code" id="-9fokwk_124">==</code> statement) to determine which object called the <code class="code" id="-9fokwk_125">onChanged</code> method.</p><div class="code-block" data-lang="java">
+
+class PricingMediator implements Mediator {
+    private Basket basket;
+    private Discounter discounter;
+
+    public void registerColleagues(Basket basket, Discounter discounter)
+    {
+        this.basket = basket;
+        this.discounter = discounter;
+    }
+
+    @Override
+    public void onChanged(Colleague colleague) {
+
+        if(colleague == basket)
+        {
+            discounter.setTotal(basket.getTotal());
+        }
+        if(colleague == discounter)
+        {
+            basket.setDiscount(discounter.getDiscount());
+        }
+    }
+}
+
+</div><p id="-9fokwk_102">The client code uses the <span class="control" id="-9fokwk_126">Basket</span> and <span class="control" id="-9fokwk_127">Discounter</span> objects directly, but the client code is unaware of the communication between them, which happens via the <code class="code" id="-9fokwk_128">PricingMediator</code> class.</p><div class="code-block" data-lang="java">
+//Set up relationships between Mediator and Colleagues (Basket and Discounter)
+PricingMediator mediator = new PricingMediator();
+Basket basket = new Basket(mediator);
+Discounter discounter = new Discounter(mediator);
+mediator.registerColleagues(basket, discounter);
+
+Product a1 = new Product(&quot;A1&quot;, 50.0d);
+Product a2 = new Product(&quot;A2&quot;, 250.0d);
+
+basket.addProduct(a1);
+System.out.format(&quot;Using Mediator: Current price with discount: %s%n&quot;, basket.getTotalWithDiscount());
+basket.addProduct(a2);
+System.out.format(&quot;Using Mediator: Current price with discount: %s%n&quot;, basket.getTotalWithDiscount());
+discounter.setDiscountCode(&quot;Discount50&quot;);
+System.out.format(&quot;Using Mediator: Current price with discount: %s%n&quot;, basket.getTotalWithDiscount());
+
+//Output
+Using Mediator: Current price with discount: 50.0
+Using Mediator: Current price with discount: 240.0
+Using Mediator: Current price with discount: 150.0
+</div><p id="-9fokwk_104">Unlike the Facade pattern, the Mediator pattern does not hide the existence of <code class="code" id="-9fokwk_129">Basket</code> and <code class="code" id="-9fokwk_130">Discounter</code> classes from the client, but the Mediator encapsulates and hides the communication between the classes from the client code.</p><p id="-9fokwk_105">The colleague classes (in this case <code class="code" id="-9fokwk_131">Basket</code> and <code class="code" id="-9fokwk_132">Discounter</code>) are aware of the Mediator, unlike the Facade pattern where <code class="code" id="-9fokwk_133">Basket</code> and <code class="code" id="-9fokwk_134">Discounter</code> had no knowledge of the Facade.</p><p id="-9fokwk_106">The <code class="code" id="-9fokwk_135">PricingMediator</code> class in this example has a single <code class="code" id="-9fokwk_136">onChanged</code> method that will grow and become more complex if more colleagues are added, whereas a Facade may have multiple public methods each with a subset of the communication code.</p><section class="chapter"><h3 id="the-general-form-of-the-mediator-pattern" data-toc="the-general-form-of-the-mediator-pattern">The general form of the Mediator pattern.</h3><p id="-9fokwk_137">Start with two interfaces. In this example the colleagues send String messages, the Mediator decides who gets the message.</p><div class="code-block" data-lang="java">
+interface Mediator {
+    void send(String s, Colleague colleague);
+}
+
+interface Colleague {
+}
+</div><p id="-9fokwk_139">The ConcreteColleagues classes.</p><div class="code-block" data-lang="java">
+class ConcreteColleague1 implements Colleague {
+
+    private final Mediator mediator;
+
+    ConcreteColleague1(Mediator mediator) {
+        this.mediator = mediator;
+    }
+
+    void notify(String s) {
+        //Receive a notification from Mediator
+        System.out.format(&quot;ConcreteColleague1 notified %s%n&quot;, s);
+    }
+
+    void send(String s) {
+        mediator.send(s, this);
+    }
+}
+
+class ConcreteColleague2 implements Colleague {
+
+    private final Mediator mediator;
+
+    ConcreteColleague2(Mediator mediator) {
+        this.mediator = mediator;
+    }
+
+    void notify(String s) {
+        System.out.format(&quot;ConcreteColleague2 notified %s%n&quot;, s);
+    }
+
+    void send(String s) {
+        mediator.send(s, this);
+    }
+}
+</div><p id="-9fokwk_141">The ConcreteMediator class implements the Mediator interface, and routes messages between Colleagues</p><div class="code-block" data-lang="java">
+class ConcreteMediator implements Mediator {
+
+    private ConcreteColleague1 colleague1;
+    private ConcreteColleague2 colleague2;
+
+    public void registerColleagues(ConcreteColleague1 colleague1, ConcreteColleague2 colleague2) {
+        this.colleague1 = colleague1;
+        this.colleague2 = colleague2;
+    }
+
+    @Override
+    public void send(String s, Colleague colleague) {
+        if (colleague == colleague1) {
+            colleague2.notify(s);
+        }
+        if (colleague == colleague2) {
+            colleague1.notify(s);
+        }
+    }
+}
+</div><p id="-9fokwk_143">The client code.</p><div class="code-block" data-lang="java">
+ConcreteMediator mediator = new ConcreteMediator();
+ConcreteColleague1 colleague1 = new ConcreteColleague1(mediator);
+ConcreteColleague2 colleague2 = new ConcreteColleague2(mediator);
+mediator.registerColleagues(colleague1,colleague2);
+
+colleague1.send(&quot;Hello from 1&quot;);
+colleague2.send(&quot;Hello from 2&quot;);
+
+//Output
+ConcreteColleague2 notified Hello from 1
+ConcreteColleague1 notified Hello from 2
+</div></section></section><div class="last-modified">12 September 2025</div><div data-feedback-placeholder="true"></div><div class="navigation-links _bottom"><a href="multiclassdesign01.html" class="navigation-links__prev">Designing with multiple classes - Maintainable code, the Single Responsibility and Dependency Inversion principles.</a><a href="states.html" class="navigation-links__next">Managing state</a></div></article><div id="disqus_thread"></div></div></section></main></div><script src="https://resources.jetbrains.com/writerside/apidoc/6.26.0-b913/app.js"></script></body></html>
