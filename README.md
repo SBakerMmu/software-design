@@ -15,4 +15,4 @@ The `buildpdf.ps1` script is used to build  a PDF  locally using the same Writer
 
 ## Build
 
-To build the website locally run`.\buildsite.ps from the project root directory.
+To build the website locally run`.\buildsite.ps from the project root directory. The website port mapping can be changed in the script if necessary.
