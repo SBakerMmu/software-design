@@ -11,4 +11,8 @@ The `buildpdf.ps1` script is used to build  a PDF  locally using the same Writer
 ## Prerequisites
 - PowerShell 7 or later to run the .ps1 scripts (`pwsh -v` works).
 - Docker Desktop running and available in your PATH (`docker --version` works).
+- Powershell are written for running on Windows, with `RemoteSigned` permissions at `CurrentUser` scope.
 
+## Build
+
+To build the website locally run`.\buildsite.ps from the project root directory.
